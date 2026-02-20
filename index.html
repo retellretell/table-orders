@@ -762,10 +762,55 @@
   </div>
 </div>
 
-<script>
-  const STORAGE_KEY = 'table_orders_v1';
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCt4xzx3BoVo_-NORVwCW9e_GzeR49BgfY",
+    authDomain: "rice-junky-order.firebaseapp.com",
+    databaseURL: "https://rice-junky-order-default-rtdb.firebaseio.com",
+    projectId: "rice-junky-order",
+    storageBucket: "rice-junky-order.firebasestorage.app",
+    messagingSenderId: "440569792772",
+    appId: "1:440569792772:web:3788b89bc35f0cbe9e6851",
+    measurementId: "G-HESMHSMNXN"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const ordersRef = ref(db, 'orders');
+
   let orders = {};
   let currentTable = null;
+
+  // ===== Firebase 설정 =====
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // ===== Firebase 설정 =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyCt4xzx3BoVo_-NORVwCW9e_GzeR49BgfY",
+    authDomain: "rice-junky-order.firebaseapp.com",
+    databaseURL: "https://rice-junky-order-default-rtdb.firebaseio.com",
+    projectId: "rice-junky-order",
+    storageBucket: "rice-junky-order.firebasestorage.app",
+    messagingSenderId: "440569792772",
+    appId: "1:440569792772:web:3788b89bc35f0cbe9e6851",
+    measurementId: "G-HESMHSMNXN"
+  };
+
+  // Firebase 초기화
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const ordersRef = db.ref('orders');
+
+  // 실시간 동기화 - Firebase에서 변경사항 수신
+  ordersRef.on('value', (snapshot) => {
+    orders = snapshot.val() || {};
+    refreshAll();
+    if (currentTable) renderOrders();
+  });
 
   // ===== 메뉴 데이터 (sides: 같이 나가야 할 것들) =====
   const MENU = [
@@ -893,15 +938,16 @@
   }
 
   function load() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) orders = JSON.parse(saved);
-    } catch(e) {}
-    refreshAll();
+    // Firebase 실시간 동기화 - 데이터 변경시 자동 업데이트
+    onValue(ordersRef, (snapshot) => {
+      orders = snapshot.val() || {};
+      refreshAll();
+      if (currentTable) renderOrders();
+    });
   }
 
   function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+    set(ordersRef, orders);
   }
 
   function getOrders(t) {
@@ -1110,6 +1156,22 @@
   }
 
   load();
+
+  // onclick에서 접근 가능하도록 전역 등록
+  window.openTable = openTable;
+  window.closeModal = closeModal;
+  window.handleOverlayClick = handleOverlayClick;
+  window.addOrder = addOrder;
+  window.deleteOrder = deleteOrder;
+  window.clearAllOrders = clearAllOrders;
+  window.serveItem = serveItem;
+  window.toggleSide = toggleSide;
+  window.clearServedAll = clearServedAll;
+  window.handleKey = handleKey;
+  window.autoResize = autoResize;
+  window.showAC = showAC;
+  window.hideAC = hideAC;
+  window.selectMenu = selectMenu;
 </script>
 </body>
 </html>
