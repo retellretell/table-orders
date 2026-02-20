@@ -109,6 +109,27 @@
   .sync-indicator { font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
   .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
   .sync-dot.off { background: var(--red); }
+
+  .queue-search-wrap { margin-bottom: 12px; }
+  .queue-search-input { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; font-family: inherit; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+  .queue-search-input:focus { border-color: var(--accent); }
+  .queue-search-input::placeholder { color: var(--muted); }
+  .queue-item.highlight { border-color: var(--accent2); background: rgba(255,209,102,0.07); }
+  .queue-item-text em { color: var(--accent2); font-style: normal; font-weight: 900; }
+
+  /* 소스 옵션 팝업 */
+  .sauce-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .sauce-popup-overlay.open { display: flex; }
+  .sauce-popup { background: var(--surface); border-radius: 20px; padding: 24px 20px; width: 80%; max-width: 320px; border: 1px solid var(--border); animation: fadeIn 0.2s ease; text-align: center; }
+  .sauce-popup-title { font-size: 16px; font-weight: 900; color: var(--text); margin-bottom: 6px; }
+  .sauce-popup-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .sauce-popup-btns { display: flex; flex-direction: column; gap: 10px; }
+  .sauce-btn { padding: 14px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+  .sauce-btn.default { background: var(--card); border: 1.5px solid var(--border); color: var(--text); }
+  .sauce-btn.aside { background: rgba(255,107,53,0.12); border: 1.5px solid var(--accent); color: var(--accent); }
+  .sauce-btn.cancel { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 13px; padding: 10px; }
+  .sauce-btn:active { transform: scale(0.97); }
+  .sauce-aside-tag { display: inline-block; background: rgba(255,107,53,0.15); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -151,10 +172,25 @@
     <div class="queue-title">🧾 나가야 할 메뉴 <span class="queue-count-badge" id="queueCountBadge">0</span></div>
     <button class="queue-clear-btn" onclick="clearServedAll()">전체 완료</button>
   </div>
+  <div class="queue-search-wrap">
+    <input type="text" id="queueSearch" class="queue-search-input" placeholder="🔍 메뉴 검색... (예: 규카츠, 안심)" oninput="renderQueue()">
+  </div>
   <div id="queueList" class="queue-list"><div class="queue-empty">아직 주문이 없어요</div></div>
 </div>
 
-<!-- Modal -->
+<!-- 소스 옵션 팝업 -->
+<div class="sauce-popup-overlay" id="saucePopup">
+  <div class="sauce-popup">
+    <div class="sauce-popup-title">🍛 서울 경양식 돈까스</div>
+    <div class="sauce-popup-sub">소스 옵션을 선택해주세요</div>
+    <div class="sauce-popup-btns">
+      <button class="sauce-btn default" onclick="confirmSauceOption('default')">🫙 소스 뿌려서 (기본)</button>
+      <button class="sauce-btn aside" onclick="confirmSauceOption('aside')">🥣 소스 온더사이드 (따로)</button>
+      <button class="sauce-btn cancel" onclick="cancelSauceOption()">취소</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal" id="modal">
     <div class="modal-handle"></div>
@@ -300,7 +336,7 @@
       for (const table in raw) {
         const tableData = raw[table];
         if (Array.isArray(tableData)) {
-          orders[table] = tableData.filter(Boolean); // null 제거
+          orders[table] = tableData.filter(Boolean);
         } else if (tableData && typeof tableData === 'object') {
           orders[table] = Object.values(tableData).filter(Boolean);
         }
@@ -309,7 +345,7 @@
       document.getElementById('syncText').textContent = '실시간 연결';
       refreshAll();
       if (currentTable) renderOrders();
-    }, (error) => {
+    }, () => {
       document.getElementById('syncDot').classList.add('off');
       document.getElementById('syncText').textContent = '연결 오류';
     });
@@ -355,30 +391,67 @@
   function renderQueue() {
     const allItems = [];
     for (let t = 1; t <= 12; t++) {
-      getOrders(t).forEach((item, idx) => {
-        allItems.push({ table: t, idx, text: item.text, time: item.time, id: item.id || item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
+      getOrders(t).forEach((item) => {
+        allItems.push({ table: t, text: item.text, time: item.time, id: item.id || item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
       });
     }
-    // id(timestamp) 기준 정렬 — 같은 분에 들어온 주문도 순서 정확
     allItems.sort((a,b) => a.id.localeCompare(b.id));
+
+    const searchEl = document.getElementById('queueSearch');
+    const rawQ = searchEl.value.trim();
+    const q = normalize(rawQ);
+
+    const filtered = q ? allItems.filter(item => normalize(item.text).includes(q)) : allItems;
 
     const el = document.getElementById('queueList');
     document.getElementById('queueCountBadge').textContent = allItems.length;
 
     if (allItems.length === 0) { el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>'; return; }
+    if (filtered.length === 0) { el.innerHTML = '<div class="queue-empty">검색 결과가 없어요</div>'; return; }
 
-    el.innerHTML = allItems.map((item, i) => {
+    el.innerHTML = filtered.map((item, i) => {
+      // 소스따로: 원본 텍스트에서 먼저 제거 후 HTML 변환 (em 태그 끼어들기 방지)
+      const isSauceAside = item.text.includes('🥣소스따로');
+      const rawText = isSauceAside ? item.text.replace('🥣소스따로', '').trimEnd() : item.text;
+      const displayText = q ? highlightNormalized(rawText, rawQ) : escapeHtml(rawText);
       const sidesHtml = item.sides.length > 0 ? `<div class="side-checks">${item.sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${item.table},'${item.id}','${s}',${i})">${s}</button>`).join('')}</div>` : '';
-      return `<div class="queue-item" id="qi-${i}">
+      return `<div class="queue-item ${q ? 'highlight' : ''}" id="qi-${i}">
         <div class="queue-table-tag">${item.table}</div>
         <div style="flex:1;min-width:0;">
-          <div class="queue-item-text">${escapeHtml(item.text)}</div>
+          <div class="queue-item-text">${displayText}${isSauceAside ? ' <span class="sauce-aside-tag">🥣소스따로</span>' : ''}</div>
           <div class="queue-item-time">${item.time} 주문</div>
           ${sidesHtml}
         </div>
         <button class="queue-done-btn" onclick="serveItem(${item.table},'${item.id}',${i})">✓</button>
       </div>`;
     }).join('');
+  }
+
+  // 공백을 무시하고 하이라이트 — 이모지(surrogate pair) 안전 처리
+  function highlightNormalized(str, query) {
+    const nStr = normalize(str);
+    const nQ = normalize(query);
+    const idx = nStr.indexOf(nQ);
+    if (idx === -1) return escapeHtml(str);
+
+    // 이모지를 올바르게 처리하기 위해 [...str] 로 코드포인트 단위 순회
+    const chars = [...str];
+    let ni = 0, start = -1, end = -1;
+    for (let oi = 0; oi < chars.length; oi++) {
+      const nc = normalize(chars[oi]);
+      if (nc !== '') {
+        if (ni === idx) start = oi;
+        if (ni === idx + nQ.length - 1) { end = oi + 1; break; }
+        ni++;
+      }
+    }
+    if (start === -1) return escapeHtml(str);
+
+    // chars 배열 기준으로 슬라이스 후 재조합
+    const before = chars.slice(0, start).join('');
+    const match  = chars.slice(start, end).join('');
+    const after  = chars.slice(end).join('');
+    return escapeHtml(before) + '<em>' + escapeHtml(match) + '</em>' + escapeHtml(after);
   }
 
   function openTable(t) {
@@ -494,8 +567,21 @@
   function clearServedAll() {
     if (!confirm('모든 주문을 완료 처리할까요?')) return;
     orders = {};
+    // 검색창도 초기화 - 다음 주문이 필터에 걸리지 않게
+    const searchEl = document.getElementById('queueSearch');
+    if (searchEl) searchEl.value = '';
     save();
     if (currentTable) renderOrders();
+  }
+
+  // 소스 팝업 상태 - 객체로 관리해 덮어쓰기 방지
+  const sauceState = { pendingText: null };
+
+  function cancelSauceOption() {
+    document.getElementById('saucePopup').classList.remove('open');
+    sauceState.pendingText = null;
+    // 입력창 포커스 복구
+    setTimeout(() => document.getElementById('orderInput').focus(), 100);
   }
 
   function showAC(val) {
@@ -514,12 +600,30 @@
     e.preventDefault();
     const box = document.getElementById('acBox');
     const m = box._results[i];
-    const input = document.getElementById('orderInput');
-    input.value = `${m.ko} ${m.price}`;
     box.classList.remove('show');
     box.innerHTML = '';
+
+    if (m.ko === '서울 경양식 돈까스') {
+      sauceState.pendingText = `${m.ko} ${m.price}`;
+      document.getElementById('saucePopup').classList.add('open');
+      return;
+    }
+
+    const input = document.getElementById('orderInput');
+    input.value = `${m.ko} ${m.price}`;
     autoResize(input);
-    // 선택 즉시 주문 추가
+    addOrder();
+  }
+
+  function confirmSauceOption(option) {
+    document.getElementById('saucePopup').classList.remove('open');
+    if (!sauceState.pendingText) return;
+    const input = document.getElementById('orderInput');
+    input.value = option === 'aside'
+      ? `${sauceState.pendingText} 🥣소스따로`
+      : sauceState.pendingText;
+    sauceState.pendingText = null;
+    autoResize(input);
     addOrder();
   }
 
@@ -537,11 +641,14 @@
   window.serveItem = serveItem;
   window.toggleSide = toggleSide;
   window.clearServedAll = clearServedAll;
+  window.renderQueue = renderQueue;
   window.handleKey = handleKey;
   window.autoResize = autoResize;
   window.showAC = showAC;
   window.hideAC = hideAC;
   window.selectMenu = selectMenu;
+  window.confirmSauceOption = confirmSauceOption;
+  window.cancelSauceOption = cancelSauceOption;
 
   load();
 </script>
