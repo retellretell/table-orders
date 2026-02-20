@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>테이블 주문 메모</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;700;900&display=swap');
+
+  :root {
+    --bg: #1a1a1a;
+    --surface: #242424;
+    --card: #2e2e2e;
+    --accent: #ff6b35;
+    --accent2: #ffd166;
+    --text: #f0ede8;
+    --muted: #888;
+    --border: #3a3a3a;
+    --green: #06d6a0;
+    --red: #ef476f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    background: var(--surface);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+
+  header span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .layout-section {
+    padding: 20px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* Floor layout grid */
+  .floor-map {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .floor-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .floor-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .row-5 {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .row-ends {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .table-btn {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 4px;
+    min-width: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .table-btn:active {
+    transform: scale(0.95);
+  }
+
+  .table-btn.has-order {
+    border-color: var(--accent);
+    background: rgba(255,107,53,0.08);
+  }
+
+  .table-btn.has-order .table-icon {
+    background: var(--accent);
+    color: white;
+  }
+
+  .table-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .table-btn.large-table .table-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+    border-radius: 10px;
+  }
+
+  .table-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .order-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--accent);
+    color: white;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    min-width: 18px;
+    text-align: center;
+    display: none;
+  }
+
+  .table-btn.has-order .order-badge {
+    display: block;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+    border-top: 1px solid var(--border);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+
+  .modal-header {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--accent);
+  }
+
+  .modal-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .modal-close {
+    background: var(--card);
+    border: none;
+    color: var(--text);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+
+  /* Order items */
+  .orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .order-item {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--border);
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .order-item-time {
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .order-item-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  .order-item-del {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .order-item-del:active {
+    color: var(--red);
+    background: rgba(239,71,111,0.1);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .empty-state .icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* Input area */
+  .input-area {
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: var(--surface);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .input-wrap {
+    flex: 1;
+    background: var(--card);
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrap:focus-within {
+    border-color: var(--accent);
+  }
+
+  .order-input {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    width: 100%;
+    padding: 12px 0;
+    outline: none;
+    resize: none;
+    max-height: 80px;
+    line-height: 1.4;
+  }
+
+  .order-input::placeholder { color: var(--muted); }
+
+  .add-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .add-btn:active { transform: scale(0.9); background: #e55a27; }
+
+  /* Action buttons */
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .btn-clear {
+    flex: 1;
+    background: rgba(239,71,111,0.1);
+    border: 1px solid rgba(239,71,111,0.3);
+    color: var(--red);
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-clear:active { background: rgba(239,71,111,0.2); }
+
+  .total-bar {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .total-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .total-count {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent2);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🍽 테이블 주문</h1>
+  </div>
+  <span id="activeCount">주문 0테이블</span>
+</header>
+
+<div class="layout-section">
+  <div class="floor-map">
+    <div class="floor-title">홀 배치도</div>
+
+    <!-- Row 1: 1, 4, 6, 8, 10 -->
+    <div class="row-5">
+      <div class="table-btn" onclick="openTable(1)" id="tbl-1">
+        <div class="order-badge" id="badge-1"></div>
+        <div class="table-icon">1</div>
+        <div class="table-name">T1</div>
+      </div>
+      <div class="table-btn" onclick="openTable(4)" id="tbl-4">
+        <div class="order-badge" id="badge-4"></div>
+        <div class="table-icon">4</div>
+        <div class="table-name">T4</div>
+      </div>
+      <div class="table-btn" onclick="openTable(6)" id="tbl-6">
+        <div class="order-badge" id="badge-6"></div>
+        <div class="table-icon">6</div>
+        <div class="table-name">T6</div>
+      </div>
+      <div class="table-btn" onclick="openTable(8)" id="tbl-8">
+        <div class="order-badge" id="badge-8"></div>
+        <div class="table-icon">8</div>
+        <div class="table-name">T8</div>
+      </div>
+      <div class="table-btn" onclick="openTable(10)" id="tbl-10">
+        <div class="order-badge" id="badge-10"></div>
+        <div class="table-icon">10</div>
+        <div class="table-name">T10</div>
+      </div>
+    </div>
+
+    <!-- Row 2: 2, 5, 7, 9, 11 -->
+    <div class="row-5">
+      <div class="table-btn" onclick="openTable(2)" id="tbl-2">
+        <div class="order-badge" id="badge-2"></div>
+        <div class="table-icon">2</div>
+        <div class="table-name">T2</div>
+      </div>
+      <div class="table-btn" onclick="openTable(5)" id="tbl-5">
+        <div class="order-badge" id="badge-5"></div>
+        <div class="table-icon">5</div>
+        <div class="table-name">T5</div>
+      </div>
+      <div class="table-btn" onclick="openTable(7)" id="tbl-7">
+        <div class="order-badge" id="badge-7"></div>
+        <div class="table-icon">7</div>
+        <div class="table-name">T7</div>
+      </div>
+      <div class="table-btn" onclick="openTable(9)" id="tbl-9">
+        <div class="order-badge" id="badge-9"></div>
+        <div class="table-icon">9</div>
+        <div class="table-name">T9</div>
+      </div>
+      <div class="table-btn" onclick="openTable(11)" id="tbl-11">
+        <div class="order-badge" id="badge-11"></div>
+        <div class="table-icon">11</div>
+        <div class="table-name">T11</div>
+      </div>
+    </div>
+
+    <!-- Row 3: 3 (left), 12 (right) -->
+    <div class="row-ends">
+      <div class="table-btn" onclick="openTable(3)" id="tbl-3">
+        <div class="order-badge" id="badge-3"></div>
+        <div class="table-icon">3</div>
+        <div class="table-name">T3</div>
+      </div>
+      <div style="grid-column: span 3;"></div>
+      <div class="table-btn" onclick="openTable(12)" id="tbl-12">
+        <div class="order-badge" id="badge-12"></div>
+        <div class="table-icon">12</div>
+        <div class="table-name">T12</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">테이블 1</div>
+        <div class="modal-subtitle" id="modalSubtitle">주문 내역</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="total-bar">
+        <span class="total-label">📋 주문 항목</span>
+        <span class="total-count" id="orderCount">0개</span>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-clear" onclick="clearAllOrders()">🗑 전체 삭제</button>
+      </div>
+      <div class="orders-list" id="ordersList"></div>
+    </div>
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea class="order-input" id="orderInput" placeholder="주문 내용 입력..." rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"></textarea>
+      </div>
+      <button class="add-btn" onclick="addOrder()">+</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'table_orders_v1';
+  let orders = {};
+  let currentTable = null;
+
+  function load() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) orders = JSON.parse(saved);
+    } catch(e) {}
+    refreshAll();
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  }
+
+  function getOrders(t) {
+    return orders[t] || [];
+  }
+
+  function refreshAll() {
+    let active = 0;
+    for (let i = 1; i <= 12; i++) {
+      const list = getOrders(i);
+      const btn = document.getElementById('tbl-' + i);
+      const badge = document.getElementById('badge-' + i);
+      if (list.length > 0) {
+        btn.classList.add('has-order');
+        badge.textContent = list.length;
+        active++;
+      } else {
+        btn.classList.remove('has-order');
+        badge.textContent = '';
+      }
+    }
+    document.getElementById('activeCount').textContent = `주문 ${active}테이블`;
+  }
+
+  function openTable(t) {
+    currentTable = t;
+    document.getElementById('modalTitle').textContent = `테이블 ${t}`;
+    renderOrders();
+    document.getElementById('modalOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('orderInput').focus(), 400);
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    currentTable = null;
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+
+  function renderOrders() {
+    const list = getOrders(currentTable);
+    const el = document.getElementById('ordersList');
+    document.getElementById('orderCount').textContent = list.length + '개';
+    document.getElementById('modalSubtitle').textContent = 
+      list.length > 0 ? `${list.length}개 주문 중` : '주문 없음';
+
+    if (list.length === 0) {
+      el.innerHTML = `<div class="empty-state"><span class="icon">📝</span>아직 주문이 없어요</div>`;
+      return;
+    }
+
+    el.innerHTML = list.map((item, idx) => `
+      <div class="order-item" id="item-${idx}">
+        <div class="order-item-time">${item.time}</div>
+        <div class="order-item-text">${escapeHtml(item.text)}</div>
+        <button class="order-item-del" onclick="deleteOrder(${idx})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  function addOrder() {
+    const input = document.getElementById('orderInput');
+    const text = input.value.trim();
+    if (!text || !currentTable) return;
+
+    if (!orders[currentTable]) orders[currentTable] = [];
+    const now = new Date();
+    const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    orders[currentTable].push({ text, time });
+
+    input.value = '';
+    input.style.height = 'auto';
+    save();
+    renderOrders();
+    refreshAll();
+
+    // scroll to bottom
+    const body = document.querySelector('.modal-body');
+    setTimeout(() => body.scrollTop = body.scrollHeight, 50);
+  }
+
+  function deleteOrder(idx) {
+    if (!currentTable) return;
+    orders[currentTable].splice(idx, 1);
+    if (orders[currentTable].length === 0) delete orders[currentTable];
+    save();
+    renderOrders();
+    refreshAll();
+  }
+
+  function clearAllOrders() {
+    if (!currentTable) return;
+    if (!confirm(`테이블 ${currentTable}의 모든 주문을 삭제할까요?`)) return;
+    delete orders[currentTable];
+    save();
+    renderOrders();
+    refreshAll();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      addOrder();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+  }
+
+  load();
+</script>
+</body>
+</html>
