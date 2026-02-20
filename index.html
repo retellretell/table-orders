@@ -340,6 +340,7 @@
     display: flex;
     gap: 10px;
     align-items: flex-end;
+    position: relative;
   }
 
   .input-wrap {
@@ -372,6 +373,37 @@
   }
 
   .order-input::placeholder { color: var(--muted); }
+
+  /* Autocomplete dropdown */
+  .autocomplete-box {
+    position: absolute;
+    bottom: 100%;
+    left: 20px; right: 20px;
+    background: #1e1e1e;
+    border: 1.5px solid var(--accent);
+    border-radius: 14px 14px 0 0;
+    max-height: 230px;
+    overflow-y: auto;
+    z-index: 999;
+    display: none;
+  }
+  .autocomplete-box.show { display: block; }
+  .ac-item {
+    padding: 11px 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:active { background: rgba(255,107,53,0.15); }
+  .ac-left { flex: 1; min-width: 0; }
+  .ac-name { font-size: 13px; font-weight: 700; line-height: 1.3; }
+  .ac-name em { color: var(--accent); font-style: normal; }
+  .ac-en { font-size: 11px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ac-price { font-size: 13px; color: var(--accent2); font-weight: 700; flex-shrink: 0; margin-left: 10px; padding-top: 1px; }
 
   .add-btn {
     background: var(--accent);
@@ -430,6 +462,167 @@
     font-size: 18px;
     font-weight: 900;
     color: var(--accent2);
+  }
+
+  /* ===== 전체 주문 큐 ===== */
+  .queue-section {
+    padding: 0 20px 40px;
+  }
+
+  .queue-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .queue-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .queue-count-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .queue-clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-family: inherit;
+    padding: 5px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .queue-empty {
+    text-align: center;
+    padding: 28px 0;
+    color: var(--muted);
+    font-size: 13px;
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px dashed var(--border);
+  }
+
+  .queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .queue-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .queue-table-tag {
+    background: var(--accent);
+    color: white;
+    font-size: 13px;
+    font-weight: 900;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .queue-item-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .queue-item-time {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .queue-done-btn {
+    background: var(--green);
+    border: none;
+    color: #000;
+    font-size: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-weight: 900;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .queue-done-btn:active {
+    transform: scale(0.88);
+    opacity: 0.8;
+  }
+
+  .queue-item.served {
+    opacity: 0;
+    transform: translateX(60px);
+    transition: all 0.35s ease;
+  }
+
+  /* 사이드 체크 칩 */
+  .side-checks {
+    display: flex;
+    gap: 6px;
+    margin-top: 7px;
+    flex-wrap: wrap;
+  }
+
+  .side-chip {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .side-chip.checked {
+    background: rgba(6, 214, 160, 0.15);
+    border-color: var(--green);
+    color: var(--green);
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+
+  .side-chip:active {
+    transform: scale(0.93);
   }
 </style>
 </head>
@@ -521,6 +714,20 @@
   </div>
 </div>
 
+<!-- 전체 주문 큐 -->
+<div class="queue-section">
+  <div class="queue-header">
+    <div class="queue-title">
+      🧾 나가야 할 메뉴
+      <span class="queue-count-badge" id="queueCountBadge">0</span>
+    </div>
+    <button class="queue-clear-btn" onclick="clearServedAll()">전체 완료</button>
+  </div>
+  <div id="queueList" class="queue-list">
+    <div class="queue-empty">아직 주문이 없어요</div>
+  </div>
+</div>
+
 <!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal" id="modal">
@@ -543,10 +750,12 @@
       <div class="orders-list" id="ordersList"></div>
     </div>
     <div class="input-area">
+      <div class="autocomplete-box" id="acBox"></div>
       <div class="input-wrap">
-        <textarea class="order-input" id="orderInput" placeholder="주문 내용 입력..." rows="1"
+        <textarea class="order-input" id="orderInput" placeholder="메뉴 검색 또는 직접 입력..." rows="1"
           onkeydown="handleKey(event)"
-          oninput="autoResize(this)"></textarea>
+          onblur="hideAC()"
+          oninput="autoResize(this); showAC(this.value)"></textarea>
       </div>
       <button class="add-btn" onclick="addOrder()">+</button>
     </div>
@@ -557,6 +766,131 @@
   const STORAGE_KEY = 'table_orders_v1';
   let orders = {};
   let currentTable = null;
+
+  // ===== 메뉴 데이터 (sides: 같이 나가야 할 것들) =====
+  const MENU = [
+    // KATSU
+    { ko: '서울 경양식 돈까스', en: 'Seoul Classic Pork Cutlet', price: '$18.99', sides: [],
+      keywords: ['서울','경양식','돈까스','돈카츠','클래식','classic','seoul','pork','cutlet','까스','카츠','katsu','donkatsu'] },
+    { ko: '킹타이거 프라운 까스', en: 'King Tiger Prawn Katsu', price: '$43', sides: ['🍚 밥'],
+      keywords: ['킹타이거','킹','프라운','새우','까스','카츠','katsu','king','tiger','prawn','shrimp'] },
+    { ko: '등심 까스', en: 'Pork Loin Katsu', price: '$24', sides: ['🍚 밥'],
+      keywords: ['등심','로인','loin','까스','카츠','katsu','pork'] },
+    { ko: '안심 까스', en: 'Pork Tenderloin Katsu', price: '$25', sides: ['🍚 밥'],
+      keywords: ['안심','텐더로인','텐더','tenderloin','tender','까스','카츠','katsu','pork'] },
+    { ko: '규 까스', en: 'Gyukatsu (Beef Cutlet)', price: '$38', sides: ['🍚 밥', '🔥 그릴'],
+      keywords: ['규','규카츠','규까스','소고기','beef','gyukatsu','gyu','까스','카츠','katsu','cutlet'] },
+    { ko: '문어 까스', en: 'Octopus Katsu', price: '$39', sides: ['🍚 밥'],
+      keywords: ['문어','옥토퍼스','octopus','까스','카츠','katsu'] },
+    { ko: '치즈 까스', en: 'Cheese Katsu', price: '$26', sides: ['🍚 밥'],
+      keywords: ['치즈','cheese','까스','카츠','katsu'] },
+    { ko: '숯불갈비 스테이크', en: 'Charcoal-Grilled Galbi Steak', price: '$35', sides: [],
+      keywords: ['숯불','갈비','스테이크','charcoal','grilled','galbi','steak','갈빗대','ribs'] },
+    { ko: 'KFC 치킨', en: 'Korean Fried Chicken Thigh', price: '$17', sides: [],
+      keywords: ['kfc','치킨','닭','닭다리','korean','fried','chicken','thigh','프라이드'] },
+    // SIDE
+    { ko: '조랭이떡볶이', en: 'Mini Rice Cake Tteokbokki', price: '$16', sides: [],
+      keywords: ['조랭이','떡볶이','떡','tteokbokki','rice cake','spicy'] },
+    { ko: '삼겹살 튀김', en: 'Crispy Pork Belly', price: '$18', sides: [],
+      keywords: ['삼겹살','삼겹','튀김','pork belly','belly','crispy'] },
+    { ko: '연어장', en: 'Soy-Marinated Salmon', price: '$19', sides: [],
+      keywords: ['연어','연어장','salmon','soy','marinated'] },
+    { ko: '차돌박이 비빔파스타', en: 'Spicy Beef Brisket Pasta', price: '$17', sides: [],
+      keywords: ['차돌','차돌박이','비빔','파스타','pasta','beef','brisket','spicy'] },
+    { ko: '꽈리고추 버섯구이', en: 'Blistered Shishito Peppers & Mushrooms', price: '$15', sides: [],
+      keywords: ['꽈리','꽈리고추','버섯','구이','shishito','pepper','mushroom','blistered'] },
+    { ko: '조개탕', en: 'Clam Soup (SPICY +$1)', price: '$16', sides: [],
+      keywords: ['조개','조개탕','clam','soup','spicy'] },
+    { ko: '닭강정', en: 'Korean Sweet & Spicy Chicken Bites', price: '$14', sides: [],
+      keywords: ['닭강정','강정','닭','chicken','sweet','spicy','bites'] },
+    { ko: '베이컨 김치 새우 양배추 전', en: 'Bacon, Kimchi, Shrimp & Cabbage Jeon', price: '$18', sides: [],
+      keywords: ['베이컨','김치','새우','양배추','전','jeon','bacon','kimchi','shrimp','cabbage','pancake'] },
+    // DRINK
+    { ko: '콜라 / 다이어트콜라', en: 'Coke / Diet Coke', price: '$2', sides: [],
+      keywords: ['콜라','다이어트콜라','다이어트','coke','cola','diet'] },
+    { ko: '스프라이트', en: 'Sprite', price: '$2', sides: [],
+      keywords: ['스프라이트','sprite','사이다'] },
+    { ko: '밀키스', en: 'Milkis', price: '$2', sides: [],
+      keywords: ['밀키스','milkis'] },
+    { ko: '소주', en: 'Soju (Chamisul, Jinro, Saero)', price: '$11', sides: [],
+      keywords: ['소주','참이슬','진로','새로','soju','chamisul','jinro','saero'] },
+    { ko: '한국 맥주', en: 'Korean Beer (CASS, TERRA)', price: '$10', sides: [],
+      keywords: ['한국맥주','맥주','카스','테라','cass','terra','beer','korean'] },
+    { ko: '로컬 맥주', en: 'Local Beer (IPA, Blonde, Churro, Hazy)', price: '$8', sides: [],
+      keywords: ['로컬','로컬맥주','ipa','블론드','블론드에일','blonde','churro','처로','hazy','헤이지','local','beer','craft'] },
+    { ko: '막걸리', en: 'Makgeolli (Korean Rice Wine)', price: '$11', sides: [],
+      keywords: ['막걸리','makgeolli','rice wine','탁주'] },
+    { ko: '생맥주', en: 'Draft Beer (Lagunitas, Modelo)', price: '$8', sides: [],
+      keywords: ['생맥주','생','draft','라구니타스','모델로','lagunitas','modelo'] },
+  ];
+
+  // 텍스트에서 사이드 정보 감지
+  function getSidesForText(text) {
+    const t = normalize(text);
+    for (const m of MENU) {
+      // keywords 우선 매칭
+      if (m.keywords && m.keywords.some(k => t.includes(normalize(k)))) {
+        return m.sides;
+      }
+    }
+    return [];
+  }
+
+  function normalize(str) {
+    return str.toLowerCase().replace(/\s/g, '');
+  }
+
+  function highlight(str, query) {
+    const q = query.toLowerCase();
+    const idx = str.toLowerCase().indexOf(q);
+    if (idx === -1) return escapeHtml(str);
+    return escapeHtml(str.slice(0, idx)) + '<em>' + escapeHtml(str.slice(idx, idx + q.length)) + '</em>' + escapeHtml(str.slice(idx + q.length));
+  }
+
+  function showAC(val) {
+    const box = document.getElementById('acBox');
+    const q = val.trim();
+    if (!q) { box.classList.remove('show'); box.innerHTML = ''; return; }
+
+    const qn = normalize(q);
+    const results = MENU.filter(m => {
+      if (normalize(m.ko).includes(qn) || normalize(m.en).includes(qn)) return true;
+      if (m.keywords && m.keywords.some(k => normalize(k).includes(qn) || qn.includes(normalize(k)))) return true;
+      return false;
+    }).slice(0, 8);
+
+    if (!results.length) { box.classList.remove('show'); box.innerHTML = ''; return; }
+
+    box.innerHTML = results.map((m, i) => `
+      <div class="ac-item" ontouchend="selectMenu(${i}, event)" onclick="selectMenu(${i}, event)" data-idx="${i}">
+        <div class="ac-left">
+          <div class="ac-name">${highlight(m.ko, q)}</div>
+          <div class="ac-en">${highlight(m.en, q)}</div>
+        </div>
+        <div class="ac-price">${m.price}</div>
+      </div>
+    `).join('');
+    box._results = results;
+    box.classList.add('show');
+  }
+
+  function selectMenu(i, e) {
+    e.preventDefault();
+    const box = document.getElementById('acBox');
+    const m = box._results[i];
+    const input = document.getElementById('orderInput');
+    input.value = `${m.ko} ${m.price}`;
+    box.classList.remove('show');
+    box.innerHTML = '';
+    autoResize(input);
+  }
+
+  function hideAC() {
+    setTimeout(() => {
+      const box = document.getElementById('acBox');
+      box.classList.remove('show');
+    }, 200);
+  }
 
   function load() {
     try {
@@ -590,6 +924,96 @@
       }
     }
     document.getElementById('activeCount').textContent = `주문 ${active}테이블`;
+    renderQueue();
+  }
+
+  function renderQueue() {
+    const allItems = [];
+    for (let t = 1; t <= 12; t++) {
+      const list = getOrders(t);
+      list.forEach((item, idx) => {
+        allItems.push({ table: t, idx, text: item.text, time: item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
+      });
+    }
+    allItems.sort((a, b) => a.time.localeCompare(b.time));
+
+    const el = document.getElementById('queueList');
+    document.getElementById('queueCountBadge').textContent = allItems.length;
+
+    if (allItems.length === 0) {
+      el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>';
+      return;
+    }
+
+    el.innerHTML = allItems.map((item, i) => {
+      const sidesHtml = item.sides.length > 0 ? `
+        <div class="side-checks">
+          ${item.sides.map((s, si) => {
+            const checked = item.checkedSides.includes(s);
+            return `<button class="side-chip ${checked ? 'checked' : ''}" onclick="toggleSide(${item.table}, ${item.idx}, '${s}', ${i})">${s}</button>`;
+          }).join('')}
+        </div>
+      ` : '';
+
+      return `
+        <div class="queue-item" id="qi-${i}">
+          <div class="queue-table-tag">${item.table}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="queue-item-text">${escapeHtml(item.text)}</div>
+            <div class="queue-item-time">${item.time} 주문</div>
+            ${sidesHtml}
+          </div>
+          <button class="queue-done-btn" onclick="serveItem(${item.table}, ${item.idx}, ${i})">✓</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleSide(table, idx, side, queueIdx) {
+    const item = orders[table] && orders[table][idx];
+    if (!item) return;
+    if (!item.checkedSides) item.checkedSides = [];
+    const pos = item.checkedSides.indexOf(side);
+    if (pos === -1) item.checkedSides.push(side);
+    else item.checkedSides.splice(pos, 1);
+    save();
+    // 해당 큐 아이템만 사이드칩 업데이트 (전체 리렌더 없이)
+    const sides = getSidesForText(item.text);
+    const sidesEl = document.querySelector(`#qi-${queueIdx} .side-checks`);
+    if (sidesEl) {
+      sidesEl.innerHTML = sides.map(s => {
+        const checked = item.checkedSides.includes(s);
+        return `<button class="side-chip ${checked ? 'checked' : ''}" onclick="toggleSide(${table}, ${idx}, '${s}', ${queueIdx})">${s}</button>`;
+      }).join('');
+    }
+  }
+
+  function serveItem(table, idx, queueIdx) {
+    // 애니메이션
+    const el = document.getElementById('qi-' + queueIdx);
+    if (el) {
+      el.classList.add('served');
+      setTimeout(() => {
+        orders[table].splice(idx, 1);
+        if (orders[table].length === 0) delete orders[table];
+        save();
+        refreshAll();
+        if (currentTable === table) renderOrders();
+      }, 320);
+    } else {
+      orders[table].splice(idx, 1);
+      if (orders[table].length === 0) delete orders[table];
+      save();
+      refreshAll();
+    }
+  }
+
+  function clearServedAll() {
+    if (!confirm('모든 주문을 완료 처리할까요?')) return;
+    orders = {};
+    save();
+    refreshAll();
+    if (currentTable) renderOrders();
   }
 
   function openTable(t) {
