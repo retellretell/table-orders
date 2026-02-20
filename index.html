@@ -3,400 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>테이블 주문 메모</title>
+<title>테이블 주문</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;700;900&display=swap');
-
   :root {
-    --bg: #1a1a1a;
-    --surface: #242424;
-    --card: #2e2e2e;
-    --accent: #ff6b35;
-    --accent2: #ffd166;
-    --text: #f0ede8;
-    --muted: #888;
-    --border: #3a3a3a;
-    --green: #06d6a0;
-    --red: #ef476f;
+    --bg: #1a1a1a; --surface: #242424; --card: #2e2e2e;
+    --accent: #ff6b35; --accent2: #ffd166; --text: #f0ede8;
+    --muted: #888; --border: #3a3a3a; --green: #06d6a0; --red: #ef476f;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+  header { background: var(--surface); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  header h1 { font-size: 18px; font-weight: 900; color: var(--accent); }
+  header span { font-size: 12px; color: var(--muted); }
 
-  header {
-    background: var(--surface);
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+  .layout-section { padding: 20px; }
+  .floor-map { background: var(--surface); border-radius: 16px; padding: 14px; border: 1px solid var(--border); margin-bottom: 20px; }
+  .floor-title { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .floor-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  header h1 {
-    font-size: 18px;
-    font-weight: 900;
-    letter-spacing: -0.5px;
-    color: var(--accent);
-  }
+  .row-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .row-ends { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 
-  header span {
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .layout-section {
-    padding: 20px;
-  }
-
-  .section-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-
-  /* Floor layout grid */
-  .floor-map {
-    background: var(--surface);
-    border-radius: 16px;
-    padding: 14px;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-  }
-
-  .floor-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--muted);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .floor-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .row-5 {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 6px;
-    margin-bottom: 8px;
-  }
-
-  .row-ends {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .table-btn {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 4px;
-    min-width: 0;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    position: relative;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
-
-  .table-btn:active {
-    transform: scale(0.95);
-  }
-
-  .table-btn.has-order {
-    border-color: var(--accent);
-    background: rgba(255,107,53,0.08);
-  }
-
-  .table-btn.has-order .table-icon {
-    background: var(--accent);
-    color: white;
-  }
-
-  .table-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    background: var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 900;
-    color: var(--text);
-    transition: all 0.2s;
-  }
-
-  .table-btn.large-table .table-icon {
-    width: 52px;
-    height: 52px;
-    font-size: 22px;
-    border-radius: 10px;
-  }
-
-  .table-name {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 0.5px;
-  }
-
-  .order-badge {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    background: var(--accent);
-    color: white;
-    border-radius: 10px;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 2px 6px;
-    min-width: 18px;
-    text-align: center;
-    display: none;
-  }
-
-  .table-btn.has-order .order-badge {
-    display: block;
-  }
+  .table-btn { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 10px 4px; min-width: 0; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .table-btn:active { transform: scale(0.95); }
+  .table-btn.has-order { border-color: var(--accent); background: rgba(255,107,53,0.08); }
+  .table-btn.has-order .table-icon { background: var(--accent); color: white; }
+  .table-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: var(--text); transition: all 0.2s; }
+  .table-name { font-size: 10px; font-weight: 600; color: var(--muted); }
+  .order-badge { position: absolute; top: 6px; right: 6px; background: var(--accent); color: white; border-radius: 10px; font-size: 9px; font-weight: 700; padding: 2px 6px; min-width: 18px; text-align: center; display: none; }
+  .table-btn.has-order .order-badge { display: block; }
 
   /* Modal */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    display: none;
-    align-items: flex-end;
-    backdrop-filter: blur(4px);
-  }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-height: 85vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease; border-top: 1px solid var(--border); }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 0; }
+  .modal-header { padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .modal-title { font-size: 20px; font-weight: 900; color: var(--accent); }
+  .modal-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .modal-close { background: var(--card); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .modal-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
 
-  .modal-overlay.open {
-    display: flex;
-  }
+  .orders-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .order-item { background: var(--card); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .order-item-time { font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .order-item-text { flex: 1; font-size: 14px; font-weight: 500; line-height: 1.4; word-break: break-all; }
+  .order-item-del { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; }
+  .order-item-del:active { color: var(--red); background: rgba(239,71,111,0.1); }
+  .empty-state { text-align: center; padding: 32px 0; color: var(--muted); font-size: 13px; }
+  .empty-state .icon { font-size: 36px; margin-bottom: 8px; display: block; }
 
-  .modal {
-    background: var(--surface);
-    border-radius: 24px 24px 0 0;
-    width: 100%;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    animation: slideUp 0.3s ease;
-    border-top: 1px solid var(--border);
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
-  .modal-handle {
-    width: 40px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 12px auto 0;
-  }
-
-  .modal-header {
-    padding: 16px 20px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .modal-title {
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--accent);
-  }
-
-  .modal-subtitle {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  .modal-close {
-    background: var(--card);
-    border: none;
-    color: var(--text);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 20px;
-  }
-
-  /* Order items */
-  .orders-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .order-item {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid var(--border);
-    animation: fadeIn 0.2s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .order-item-time {
-    font-size: 10px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-
-  .order-item-text {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    word-break: break-all;
-  }
-
-  .order-item-del {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    transition: all 0.15s;
-    flex-shrink: 0;
-  }
-
-  .order-item-del:active {
-    color: var(--red);
-    background: rgba(239,71,111,0.1);
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 32px 0;
-    color: var(--muted);
-    font-size: 13px;
-  }
-
-  .empty-state .icon {
-    font-size: 36px;
-    margin-bottom: 8px;
-    display: block;
-  }
-
-  /* Input area */
-  .input-area {
-    border-top: 1px solid var(--border);
-    padding: 12px 20px;
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
-    background: var(--surface);
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-    position: relative;
-  }
-
-  .input-wrap {
-    flex: 1;
-    background: var(--card);
-    border-radius: 12px;
-    border: 1.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    transition: border-color 0.2s;
-  }
-
-  .input-wrap:focus-within {
-    border-color: var(--accent);
-  }
-
-  .order-input {
-    background: none;
-    border: none;
-    color: var(--text);
-    font-size: 14px;
-    font-family: inherit;
-    width: 100%;
-    padding: 12px 0;
-    outline: none;
-    resize: none;
-    max-height: 80px;
-    line-height: 1.4;
-  }
-
+  .input-area { border-top: 1px solid var(--border); padding: 12px 20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: var(--surface); display: flex; gap: 10px; align-items: flex-end; position: relative; }
+  .input-wrap { flex: 1; background: var(--card); border-radius: 12px; border: 1.5px solid var(--border); display: flex; align-items: center; padding: 0 12px; transition: border-color 0.2s; }
+  .input-wrap:focus-within { border-color: var(--accent); }
+  .order-input { background: none; border: none; color: var(--text); font-size: 14px; font-family: inherit; width: 100%; padding: 12px 0; outline: none; resize: none; max-height: 80px; line-height: 1.4; }
   .order-input::placeholder { color: var(--muted); }
 
-  /* Autocomplete dropdown */
-  .autocomplete-box {
-    position: absolute;
-    bottom: 100%;
-    left: 20px; right: 20px;
-    background: #1e1e1e;
-    border: 1.5px solid var(--accent);
-    border-radius: 14px 14px 0 0;
-    max-height: 230px;
-    overflow-y: auto;
-    z-index: 999;
-    display: none;
-  }
+  .autocomplete-box { position: absolute; bottom: 100%; left: 20px; right: 20px; background: #1e1e1e; border: 1.5px solid var(--accent); border-radius: 14px 14px 0 0; max-height: 230px; overflow-y: auto; z-index: 999; display: none; }
   .autocomplete-box.show { display: block; }
-  .ac-item {
-    padding: 11px 14px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 1px solid var(--border);
-    -webkit-tap-highlight-color: transparent;
-  }
+  .ac-item { padding: 11px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); -webkit-tap-highlight-color: transparent; }
   .ac-item:last-child { border-bottom: none; }
   .ac-item:active { background: rgba(255,107,53,0.15); }
   .ac-left { flex: 1; min-width: 0; }
@@ -405,327 +74,84 @@
   .ac-en { font-size: 11px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ac-price { font-size: 13px; color: var(--accent2); font-weight: 700; flex-shrink: 0; margin-left: 10px; padding-top: 1px; }
 
-  .add-btn {
-    background: var(--accent);
-    border: none;
-    color: white;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    font-size: 22px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    flex-shrink: 0;
-  }
-
+  .add-btn { background: var(--accent); border: none; color: white; width: 44px; height: 44px; border-radius: 12px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
   .add-btn:active { transform: scale(0.9); background: #e55a27; }
 
-  /* Action buttons */
-  .modal-actions {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  .btn-clear {
-    flex: 1;
-    background: rgba(239,71,111,0.1);
-    border: 1px solid rgba(239,71,111,0.3);
-    color: var(--red);
-    padding: 10px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
+  .modal-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn-clear { flex: 1; background: rgba(239,71,111,0.1); border: 1px solid rgba(239,71,111,0.3); color: var(--red); padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
   .btn-clear:active { background: rgba(239,71,111,0.2); }
 
-  .total-bar {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid var(--border);
-    margin-bottom: 12px;
-  }
-
+  .total-bar { background: var(--card); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); margin-bottom: 12px; }
   .total-label { font-size: 12px; color: var(--muted); font-weight: 600; }
-  .total-count {
-    font-size: 18px;
-    font-weight: 900;
-    color: var(--accent2);
-  }
+  .total-count { font-size: 18px; font-weight: 900; color: var(--accent2); }
 
-  /* ===== 전체 주문 큐 ===== */
-  .queue-section {
-    padding: 0 20px 40px;
-  }
+  /* 전체 주문 큐 */
+  .queue-section { padding: 0 20px 40px; }
+  .queue-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .queue-title { font-size: 15px; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .queue-count-badge { background: var(--accent); color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .queue-clear-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-family: inherit; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+  .queue-empty { text-align: center; padding: 28px 0; color: var(--muted); font-size: 13px; background: var(--surface); border-radius: 14px; border: 1px dashed var(--border); }
+  .queue-list { display: flex; flex-direction: column; gap: 8px; }
+  .queue-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; animation: fadeIn 0.2s ease; }
+  .queue-table-tag { background: var(--accent); color: white; font-size: 13px; font-weight: 900; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .queue-item-text { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .queue-item-time { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .queue-done-btn { background: var(--green); border: none; color: #000; font-size: 16px; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-weight: 900; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+  .queue-done-btn:active { transform: scale(0.88); opacity: 0.8; }
+  .queue-item.served { opacity: 0; transform: translateX(60px); transition: all 0.35s ease; }
 
-  .queue-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-  }
+  .side-checks { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+  .side-chip { background: var(--card); border: 1.5px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; font-family: inherit; padding: 4px 10px; border-radius: 20px; cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+  .side-chip.checked { background: rgba(6,214,160,0.15); border-color: var(--green); color: var(--green); text-decoration: line-through; opacity: 0.7; }
+  .side-chip:active { transform: scale(0.93); }
 
-  .queue-title {
-    font-size: 15px;
-    font-weight: 900;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .queue-count-badge {
-    background: var(--accent);
-    color: white;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-  }
-
-  .queue-clear-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 11px;
-    font-family: inherit;
-    padding: 5px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-
-  .queue-empty {
-    text-align: center;
-    padding: 28px 0;
-    color: var(--muted);
-    font-size: 13px;
-    background: var(--surface);
-    border-radius: 14px;
-    border: 1px dashed var(--border);
-  }
-
-  .queue-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .queue-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    animation: fadeIn 0.2s ease;
-  }
-
-  .queue-table-tag {
-    background: var(--accent);
-    color: white;
-    font-size: 13px;
-    font-weight: 900;
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .queue-item-text {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.3;
-  }
-
-  .queue-item-time {
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  .queue-done-btn {
-    background: var(--green);
-    border: none;
-    color: #000;
-    font-size: 16px;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    font-weight: 900;
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .queue-done-btn:active {
-    transform: scale(0.88);
-    opacity: 0.8;
-  }
-
-  .queue-item.served {
-    opacity: 0;
-    transform: translateX(60px);
-    transition: all 0.35s ease;
-  }
-
-  /* 사이드 체크 칩 */
-  .side-checks {
-    display: flex;
-    gap: 6px;
-    margin-top: 7px;
-    flex-wrap: wrap;
-  }
-
-  .side-chip {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 700;
-    font-family: inherit;
-    padding: 4px 10px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .side-chip.checked {
-    background: rgba(6, 214, 160, 0.15);
-    border-color: var(--green);
-    color: var(--green);
-    text-decoration: line-through;
-    opacity: 0.7;
-  }
-
-  .side-chip:active {
-    transform: scale(0.93);
-  }
+  .sync-indicator { font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .sync-dot.off { background: var(--red); }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>🍽 테이블 주문</h1>
+  <h1>🍽 테이블 주문</h1>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+    <span id="activeCount">주문 0테이블</span>
+    <div class="sync-indicator"><div class="sync-dot off" id="syncDot"></div><span id="syncText">연결중...</span></div>
   </div>
-  <span id="activeCount">주문 0테이블</span>
 </header>
 
 <div class="layout-section">
   <div class="floor-map">
     <div class="floor-title">홀 배치도</div>
-
-    <!-- Row 1: 1, 4, 6, 8, 10 -->
     <div class="row-5">
-      <div class="table-btn" onclick="openTable(1)" id="tbl-1">
-        <div class="order-badge" id="badge-1"></div>
-        <div class="table-icon">1</div>
-        <div class="table-name">T1</div>
-      </div>
-      <div class="table-btn" onclick="openTable(4)" id="tbl-4">
-        <div class="order-badge" id="badge-4"></div>
-        <div class="table-icon">4</div>
-        <div class="table-name">T4</div>
-      </div>
-      <div class="table-btn" onclick="openTable(6)" id="tbl-6">
-        <div class="order-badge" id="badge-6"></div>
-        <div class="table-icon">6</div>
-        <div class="table-name">T6</div>
-      </div>
-      <div class="table-btn" onclick="openTable(8)" id="tbl-8">
-        <div class="order-badge" id="badge-8"></div>
-        <div class="table-icon">8</div>
-        <div class="table-name">T8</div>
-      </div>
-      <div class="table-btn" onclick="openTable(10)" id="tbl-10">
-        <div class="order-badge" id="badge-10"></div>
-        <div class="table-icon">10</div>
-        <div class="table-name">T10</div>
-      </div>
+      <div class="table-btn" onclick="openTable(1)" id="tbl-1"><div class="order-badge" id="badge-1"></div><div class="table-icon">1</div><div class="table-name">T1</div></div>
+      <div class="table-btn" onclick="openTable(4)" id="tbl-4"><div class="order-badge" id="badge-4"></div><div class="table-icon">4</div><div class="table-name">T4</div></div>
+      <div class="table-btn" onclick="openTable(6)" id="tbl-6"><div class="order-badge" id="badge-6"></div><div class="table-icon">6</div><div class="table-name">T6</div></div>
+      <div class="table-btn" onclick="openTable(8)" id="tbl-8"><div class="order-badge" id="badge-8"></div><div class="table-icon">8</div><div class="table-name">T8</div></div>
+      <div class="table-btn" onclick="openTable(10)" id="tbl-10"><div class="order-badge" id="badge-10"></div><div class="table-icon">10</div><div class="table-name">T10</div></div>
     </div>
-
-    <!-- Row 2: 2, 5, 7, 9, 11 -->
     <div class="row-5">
-      <div class="table-btn" onclick="openTable(2)" id="tbl-2">
-        <div class="order-badge" id="badge-2"></div>
-        <div class="table-icon">2</div>
-        <div class="table-name">T2</div>
-      </div>
-      <div class="table-btn" onclick="openTable(5)" id="tbl-5">
-        <div class="order-badge" id="badge-5"></div>
-        <div class="table-icon">5</div>
-        <div class="table-name">T5</div>
-      </div>
-      <div class="table-btn" onclick="openTable(7)" id="tbl-7">
-        <div class="order-badge" id="badge-7"></div>
-        <div class="table-icon">7</div>
-        <div class="table-name">T7</div>
-      </div>
-      <div class="table-btn" onclick="openTable(9)" id="tbl-9">
-        <div class="order-badge" id="badge-9"></div>
-        <div class="table-icon">9</div>
-        <div class="table-name">T9</div>
-      </div>
-      <div class="table-btn" onclick="openTable(11)" id="tbl-11">
-        <div class="order-badge" id="badge-11"></div>
-        <div class="table-icon">11</div>
-        <div class="table-name">T11</div>
-      </div>
+      <div class="table-btn" onclick="openTable(2)" id="tbl-2"><div class="order-badge" id="badge-2"></div><div class="table-icon">2</div><div class="table-name">T2</div></div>
+      <div class="table-btn" onclick="openTable(5)" id="tbl-5"><div class="order-badge" id="badge-5"></div><div class="table-icon">5</div><div class="table-name">T5</div></div>
+      <div class="table-btn" onclick="openTable(7)" id="tbl-7"><div class="order-badge" id="badge-7"></div><div class="table-icon">7</div><div class="table-name">T7</div></div>
+      <div class="table-btn" onclick="openTable(9)" id="tbl-9"><div class="order-badge" id="badge-9"></div><div class="table-icon">9</div><div class="table-name">T9</div></div>
+      <div class="table-btn" onclick="openTable(11)" id="tbl-11"><div class="order-badge" id="badge-11"></div><div class="table-icon">11</div><div class="table-name">T11</div></div>
     </div>
-
-    <!-- Row 3: 3 (left), 12 (right) -->
     <div class="row-ends">
-      <div class="table-btn" onclick="openTable(3)" id="tbl-3">
-        <div class="order-badge" id="badge-3"></div>
-        <div class="table-icon">3</div>
-        <div class="table-name">T3</div>
-      </div>
-      <div style="grid-column: span 3;"></div>
-      <div class="table-btn" onclick="openTable(12)" id="tbl-12">
-        <div class="order-badge" id="badge-12"></div>
-        <div class="table-icon">12</div>
-        <div class="table-name">T12</div>
-      </div>
+      <div class="table-btn" onclick="openTable(3)" id="tbl-3"><div class="order-badge" id="badge-3"></div><div class="table-icon">3</div><div class="table-name">T3</div></div>
+      <div style="grid-column:span 3;"></div>
+      <div class="table-btn" onclick="openTable(12)" id="tbl-12"><div class="order-badge" id="badge-12"></div><div class="table-icon">12</div><div class="table-name">T12</div></div>
     </div>
   </div>
 </div>
 
-<!-- 전체 주문 큐 -->
 <div class="queue-section">
   <div class="queue-header">
-    <div class="queue-title">
-      🧾 나가야 할 메뉴
-      <span class="queue-count-badge" id="queueCountBadge">0</span>
-    </div>
+    <div class="queue-title">🧾 나가야 할 메뉴 <span class="queue-count-badge" id="queueCountBadge">0</span></div>
     <button class="queue-clear-btn" onclick="clearServedAll()">전체 완료</button>
   </div>
-  <div id="queueList" class="queue-list">
-    <div class="queue-empty">아직 주문이 없어요</div>
-  </div>
+  <div id="queueList" class="queue-list"><div class="queue-empty">아직 주문이 없어요</div></div>
 </div>
 
 <!-- Modal -->
@@ -734,7 +160,7 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <div>
-        <div class="modal-title" id="modalTitle">테이블 1</div>
+        <div class="modal-title" id="modalTitle">테이블</div>
         <div class="modal-subtitle" id="modalSubtitle">주문 내역</div>
       </div>
       <button class="modal-close" onclick="closeModal()">✕</button>
@@ -773,8 +199,7 @@
     projectId: "rice-junky-order",
     storageBucket: "rice-junky-order.firebasestorage.app",
     messagingSenderId: "440569792772",
-    appId: "1:440569792772:web:3788b89bc35f0cbe9e6851",
-    measurementId: "G-HESMHSMNXN"
+    appId: "1:440569792772:web:3788b89bc35f0cbe9e6851"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -784,37 +209,8 @@
   let orders = {};
   let currentTable = null;
 
-  // ===== Firebase 설정 =====
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-  // ===== Firebase 설정 =====
-  const firebaseConfig = {
-    apiKey: "AIzaSyCt4xzx3BoVo_-NORVwCW9e_GzeR49BgfY",
-    authDomain: "rice-junky-order.firebaseapp.com",
-    databaseURL: "https://rice-junky-order-default-rtdb.firebaseio.com",
-    projectId: "rice-junky-order",
-    storageBucket: "rice-junky-order.firebasestorage.app",
-    messagingSenderId: "440569792772",
-    appId: "1:440569792772:web:3788b89bc35f0cbe9e6851",
-    measurementId: "G-HESMHSMNXN"
-  };
-
-  // Firebase 초기화
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const ordersRef = db.ref('orders');
-
-  // 실시간 동기화 - Firebase에서 변경사항 수신
-  ordersRef.on('value', (snapshot) => {
-    orders = snapshot.val() || {};
-    refreshAll();
-    if (currentTable) renderOrders();
-  });
-
-  // ===== 메뉴 데이터 (sides: 같이 나가야 할 것들) =====
+  // ===== 메뉴 데이터 =====
   const MENU = [
-    // KATSU
     { ko: '서울 경양식 돈까스', en: 'Seoul Classic Pork Cutlet', price: '$18.99', sides: [],
       keywords: ['서울','경양식','돈까스','돈카츠','클래식','classic','seoul','pork','cutlet','까스','카츠','katsu','donkatsu'] },
     { ko: '킹타이거 프라운 까스', en: 'King Tiger Prawn Katsu', price: '$43', sides: ['🍚 밥'],
@@ -823,21 +219,20 @@
       keywords: ['등심','로인','loin','까스','카츠','katsu','pork'] },
     { ko: '안심 까스', en: 'Pork Tenderloin Katsu', price: '$25', sides: ['🍚 밥'],
       keywords: ['안심','텐더로인','텐더','tenderloin','tender','까스','카츠','katsu','pork'] },
-    { ko: '규 까스', en: 'Gyukatsu (Beef Cutlet)', price: '$38', sides: ['🍚 밥', '🔥 그릴'],
+    { ko: '규 까스', en: 'Gyukatsu (Beef Cutlet)', price: '$38', sides: ['🍚 밥','🔥 그릴'],
       keywords: ['규','규카츠','규까스','소고기','beef','gyukatsu','gyu','까스','카츠','katsu','cutlet'] },
     { ko: '문어 까스', en: 'Octopus Katsu', price: '$39', sides: ['🍚 밥'],
       keywords: ['문어','옥토퍼스','octopus','까스','카츠','katsu'] },
     { ko: '치즈 까스', en: 'Cheese Katsu', price: '$26', sides: ['🍚 밥'],
       keywords: ['치즈','cheese','까스','카츠','katsu'] },
     { ko: '숯불갈비 스테이크', en: 'Charcoal-Grilled Galbi Steak', price: '$35', sides: [],
-      keywords: ['숯불','갈비','스테이크','charcoal','grilled','galbi','steak','갈빗대','ribs'] },
+      keywords: ['숯불','갈비','스테이크','charcoal','grilled','galbi','steak','ribs'] },
     { ko: 'KFC 치킨', en: 'Korean Fried Chicken Thigh', price: '$17', sides: [],
       keywords: ['kfc','치킨','닭','닭다리','korean','fried','chicken','thigh','프라이드'] },
-    // SIDE
     { ko: '조랭이떡볶이', en: 'Mini Rice Cake Tteokbokki', price: '$16', sides: [],
-      keywords: ['조랭이','떡볶이','떡','tteokbokki','rice cake','spicy'] },
+      keywords: ['조랭이','떡볶이','떡','tteokbokki','ricecake','spicy'] },
     { ko: '삼겹살 튀김', en: 'Crispy Pork Belly', price: '$18', sides: [],
-      keywords: ['삼겹살','삼겹','튀김','pork belly','belly','crispy'] },
+      keywords: ['삼겹살','삼겹','튀김','porkbelly','belly','crispy'] },
     { ko: '연어장', en: 'Soy-Marinated Salmon', price: '$19', sides: [],
       keywords: ['연어','연어장','salmon','soy','marinated'] },
     { ko: '차돌박이 비빔파스타', en: 'Spicy Beef Brisket Pasta', price: '$17', sides: [],
@@ -850,7 +245,6 @@
       keywords: ['닭강정','강정','닭','chicken','sweet','spicy','bites'] },
     { ko: '베이컨 김치 새우 양배추 전', en: 'Bacon, Kimchi, Shrimp & Cabbage Jeon', price: '$18', sides: [],
       keywords: ['베이컨','김치','새우','양배추','전','jeon','bacon','kimchi','shrimp','cabbage','pancake'] },
-    // DRINK
     { ko: '콜라 / 다이어트콜라', en: 'Coke / Diet Coke', price: '$2', sides: [],
       keywords: ['콜라','다이어트콜라','다이어트','coke','cola','diet'] },
     { ko: '스프라이트', en: 'Sprite', price: '$2', sides: [],
@@ -862,87 +256,45 @@
     { ko: '한국 맥주', en: 'Korean Beer (CASS, TERRA)', price: '$10', sides: [],
       keywords: ['한국맥주','맥주','카스','테라','cass','terra','beer','korean'] },
     { ko: '로컬 맥주', en: 'Local Beer (IPA, Blonde, Churro, Hazy)', price: '$8', sides: [],
-      keywords: ['로컬','로컬맥주','ipa','블론드','블론드에일','blonde','churro','처로','hazy','헤이지','local','beer','craft'] },
+      keywords: ['로컬','로컬맥주','ipa','블론드','blonde','churro','처로','hazy','헤이지','local','beer','craft'] },
     { ko: '막걸리', en: 'Makgeolli (Korean Rice Wine)', price: '$11', sides: [],
-      keywords: ['막걸리','makgeolli','rice wine','탁주'] },
+      keywords: ['막걸리','makgeolli','ricewine','탁주'] },
     { ko: '생맥주', en: 'Draft Beer (Lagunitas, Modelo)', price: '$8', sides: [],
       keywords: ['생맥주','생','draft','라구니타스','모델로','lagunitas','modelo'] },
   ];
 
-  // 텍스트에서 사이드 정보 감지
+  function normalize(str) { return str.toLowerCase().replace(/\s/g,''); }
+
   function getSidesForText(text) {
     const t = normalize(text);
     for (const m of MENU) {
-      // keywords 우선 매칭
-      if (m.keywords && m.keywords.some(k => t.includes(normalize(k)))) {
-        return m.sides;
-      }
+      if (m.keywords && m.keywords.some(k => t.includes(normalize(k)))) return m.sides;
     }
     return [];
-  }
-
-  function normalize(str) {
-    return str.toLowerCase().replace(/\s/g, '');
   }
 
   function highlight(str, query) {
     const q = query.toLowerCase();
     const idx = str.toLowerCase().indexOf(q);
     if (idx === -1) return escapeHtml(str);
-    return escapeHtml(str.slice(0, idx)) + '<em>' + escapeHtml(str.slice(idx, idx + q.length)) + '</em>' + escapeHtml(str.slice(idx + q.length));
+    return escapeHtml(str.slice(0,idx)) + '<em>' + escapeHtml(str.slice(idx,idx+q.length)) + '</em>' + escapeHtml(str.slice(idx+q.length));
   }
 
-  function showAC(val) {
-    const box = document.getElementById('acBox');
-    const q = val.trim();
-    if (!q) { box.classList.remove('show'); box.innerHTML = ''; return; }
-
-    const qn = normalize(q);
-    const results = MENU.filter(m => {
-      if (normalize(m.ko).includes(qn) || normalize(m.en).includes(qn)) return true;
-      if (m.keywords && m.keywords.some(k => normalize(k).includes(qn) || qn.includes(normalize(k)))) return true;
-      return false;
-    }).slice(0, 8);
-
-    if (!results.length) { box.classList.remove('show'); box.innerHTML = ''; return; }
-
-    box.innerHTML = results.map((m, i) => `
-      <div class="ac-item" ontouchend="selectMenu(${i}, event)" onclick="selectMenu(${i}, event)" data-idx="${i}">
-        <div class="ac-left">
-          <div class="ac-name">${highlight(m.ko, q)}</div>
-          <div class="ac-en">${highlight(m.en, q)}</div>
-        </div>
-        <div class="ac-price">${m.price}</div>
-      </div>
-    `).join('');
-    box._results = results;
-    box.classList.add('show');
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
   }
 
-  function selectMenu(i, e) {
-    e.preventDefault();
-    const box = document.getElementById('acBox');
-    const m = box._results[i];
-    const input = document.getElementById('orderInput');
-    input.value = `${m.ko} ${m.price}`;
-    box.classList.remove('show');
-    box.innerHTML = '';
-    autoResize(input);
-  }
-
-  function hideAC() {
-    setTimeout(() => {
-      const box = document.getElementById('acBox');
-      box.classList.remove('show');
-    }, 200);
-  }
-
+  // Firebase 실시간 동기화
   function load() {
-    // Firebase 실시간 동기화 - 데이터 변경시 자동 업데이트
     onValue(ordersRef, (snapshot) => {
       orders = snapshot.val() || {};
+      document.getElementById('syncDot').classList.remove('off');
+      document.getElementById('syncText').textContent = '실시간 연결';
       refreshAll();
       if (currentTable) renderOrders();
+    }, (error) => {
+      document.getElementById('syncDot').classList.add('off');
+      document.getElementById('syncText').textContent = '연결 오류';
     });
   }
 
@@ -950,9 +302,7 @@
     set(ordersRef, orders);
   }
 
-  function getOrders(t) {
-    return orders[t] || [];
-  }
+  function getOrders(t) { return orders[t] || []; }
 
   function refreshAll() {
     let active = 0;
@@ -960,6 +310,7 @@
       const list = getOrders(i);
       const btn = document.getElementById('tbl-' + i);
       const badge = document.getElementById('badge-' + i);
+      if (!btn) continue;
       if (list.length > 0) {
         btn.classList.add('has-order');
         badge.textContent = list.length;
@@ -976,90 +327,29 @@
   function renderQueue() {
     const allItems = [];
     for (let t = 1; t <= 12; t++) {
-      const list = getOrders(t);
-      list.forEach((item, idx) => {
+      getOrders(t).forEach((item, idx) => {
         allItems.push({ table: t, idx, text: item.text, time: item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
       });
     }
-    allItems.sort((a, b) => a.time.localeCompare(b.time));
+    allItems.sort((a,b) => a.time.localeCompare(b.time));
 
     const el = document.getElementById('queueList');
     document.getElementById('queueCountBadge').textContent = allItems.length;
 
-    if (allItems.length === 0) {
-      el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>';
-      return;
-    }
+    if (allItems.length === 0) { el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>'; return; }
 
     el.innerHTML = allItems.map((item, i) => {
-      const sidesHtml = item.sides.length > 0 ? `
-        <div class="side-checks">
-          ${item.sides.map((s, si) => {
-            const checked = item.checkedSides.includes(s);
-            return `<button class="side-chip ${checked ? 'checked' : ''}" onclick="toggleSide(${item.table}, ${item.idx}, '${s}', ${i})">${s}</button>`;
-          }).join('')}
+      const sidesHtml = item.sides.length > 0 ? `<div class="side-checks">${item.sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${item.table},${item.idx},'${s}',${i})">${s}</button>`).join('')}</div>` : '';
+      return `<div class="queue-item" id="qi-${i}">
+        <div class="queue-table-tag">${item.table}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="queue-item-text">${escapeHtml(item.text)}</div>
+          <div class="queue-item-time">${item.time} 주문</div>
+          ${sidesHtml}
         </div>
-      ` : '';
-
-      return `
-        <div class="queue-item" id="qi-${i}">
-          <div class="queue-table-tag">${item.table}</div>
-          <div style="flex:1;min-width:0;">
-            <div class="queue-item-text">${escapeHtml(item.text)}</div>
-            <div class="queue-item-time">${item.time} 주문</div>
-            ${sidesHtml}
-          </div>
-          <button class="queue-done-btn" onclick="serveItem(${item.table}, ${item.idx}, ${i})">✓</button>
-        </div>
-      `;
+        <button class="queue-done-btn" onclick="serveItem(${item.table},${item.idx},${i})">✓</button>
+      </div>`;
     }).join('');
-  }
-
-  function toggleSide(table, idx, side, queueIdx) {
-    const item = orders[table] && orders[table][idx];
-    if (!item) return;
-    if (!item.checkedSides) item.checkedSides = [];
-    const pos = item.checkedSides.indexOf(side);
-    if (pos === -1) item.checkedSides.push(side);
-    else item.checkedSides.splice(pos, 1);
-    save();
-    // 해당 큐 아이템만 사이드칩 업데이트 (전체 리렌더 없이)
-    const sides = getSidesForText(item.text);
-    const sidesEl = document.querySelector(`#qi-${queueIdx} .side-checks`);
-    if (sidesEl) {
-      sidesEl.innerHTML = sides.map(s => {
-        const checked = item.checkedSides.includes(s);
-        return `<button class="side-chip ${checked ? 'checked' : ''}" onclick="toggleSide(${table}, ${idx}, '${s}', ${queueIdx})">${s}</button>`;
-      }).join('');
-    }
-  }
-
-  function serveItem(table, idx, queueIdx) {
-    // 애니메이션
-    const el = document.getElementById('qi-' + queueIdx);
-    if (el) {
-      el.classList.add('served');
-      setTimeout(() => {
-        orders[table].splice(idx, 1);
-        if (orders[table].length === 0) delete orders[table];
-        save();
-        refreshAll();
-        if (currentTable === table) renderOrders();
-      }, 320);
-    } else {
-      orders[table].splice(idx, 1);
-      if (orders[table].length === 0) delete orders[table];
-      save();
-      refreshAll();
-    }
-  }
-
-  function clearServedAll() {
-    if (!confirm('모든 주문을 완료 처리할까요?')) return;
-    orders = {};
-    save();
-    refreshAll();
-    if (currentTable) renderOrders();
   }
 
   function openTable(t) {
@@ -1083,46 +373,29 @@
     const list = getOrders(currentTable);
     const el = document.getElementById('ordersList');
     document.getElementById('orderCount').textContent = list.length + '개';
-    document.getElementById('modalSubtitle').textContent = 
-      list.length > 0 ? `${list.length}개 주문 중` : '주문 없음';
-
-    if (list.length === 0) {
-      el.innerHTML = `<div class="empty-state"><span class="icon">📝</span>아직 주문이 없어요</div>`;
-      return;
-    }
-
+    document.getElementById('modalSubtitle').textContent = list.length > 0 ? `${list.length}개 주문 중` : '주문 없음';
+    if (list.length === 0) { el.innerHTML = `<div class="empty-state"><span class="icon">📝</span>아직 주문이 없어요</div>`; return; }
     el.innerHTML = list.map((item, idx) => `
-      <div class="order-item" id="item-${idx}">
+      <div class="order-item">
         <div class="order-item-time">${item.time}</div>
         <div class="order-item-text">${escapeHtml(item.text)}</div>
         <button class="order-item-del" onclick="deleteOrder(${idx})">✕</button>
-      </div>
-    `).join('');
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+      </div>`).join('');
   }
 
   function addOrder() {
     const input = document.getElementById('orderInput');
     const text = input.value.trim();
     if (!text || !currentTable) return;
-
     if (!orders[currentTable]) orders[currentTable] = [];
     const now = new Date();
     const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
     orders[currentTable].push({ text, time });
-
     input.value = '';
     input.style.height = 'auto';
     save();
     renderOrders();
-    refreshAll();
-
-    // scroll to bottom
-    const body = document.querySelector('.modal-body');
-    setTimeout(() => body.scrollTop = body.scrollHeight, 50);
+    setTimeout(() => { const b = document.querySelector('.modal-body'); if(b) b.scrollTop = b.scrollHeight; }, 50);
   }
 
   function deleteOrder(idx) {
@@ -1131,7 +404,6 @@
     if (orders[currentTable].length === 0) delete orders[currentTable];
     save();
     renderOrders();
-    refreshAll();
   }
 
   function clearAllOrders() {
@@ -1140,22 +412,70 @@
     delete orders[currentTable];
     save();
     renderOrders();
-    refreshAll();
   }
 
-  function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      addOrder();
+  function serveItem(table, idx, queueIdx) {
+    const el = document.getElementById('qi-' + queueIdx);
+    if (el) {
+      el.classList.add('served');
+      setTimeout(() => {
+        if (orders[table]) {
+          orders[table].splice(idx, 1);
+          if (orders[table].length === 0) delete orders[table];
+          save();
+        }
+      }, 320);
     }
   }
 
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+  function toggleSide(table, idx, side, queueIdx) {
+    const item = orders[table] && orders[table][idx];
+    if (!item) return;
+    if (!item.checkedSides) item.checkedSides = [];
+    const pos = item.checkedSides.indexOf(side);
+    if (pos === -1) item.checkedSides.push(side);
+    else item.checkedSides.splice(pos, 1);
+    save();
+    const sides = getSidesForText(item.text);
+    const sidesEl = document.querySelector(`#qi-${queueIdx} .side-checks`);
+    if (sidesEl) {
+      sidesEl.innerHTML = sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${table},${idx},'${s}',${queueIdx})">${s}</button>`).join('');
+    }
   }
 
-  load();
+  function clearServedAll() {
+    if (!confirm('모든 주문을 완료 처리할까요?')) return;
+    orders = {};
+    save();
+    if (currentTable) renderOrders();
+  }
+
+  function showAC(val) {
+    const box = document.getElementById('acBox');
+    const q = val.trim();
+    if (!q) { box.classList.remove('show'); box.innerHTML = ''; return; }
+    const qn = normalize(q);
+    const results = MENU.filter(m => normalize(m.ko).includes(qn) || normalize(m.en).includes(qn) || (m.keywords && m.keywords.some(k => normalize(k).includes(qn) || qn.includes(normalize(k))))).slice(0,8);
+    if (!results.length) { box.classList.remove('show'); box.innerHTML = ''; return; }
+    box.innerHTML = results.map((m,i) => `<div class="ac-item" ontouchend="selectMenu(${i},event)" onclick="selectMenu(${i},event)"><div class="ac-left"><div class="ac-name">${highlight(m.ko,q)}</div><div class="ac-en">${highlight(m.en,q)}</div></div><div class="ac-price">${m.price}</div></div>`).join('');
+    box._results = results;
+    box.classList.add('show');
+  }
+
+  function selectMenu(i, e) {
+    e.preventDefault();
+    const box = document.getElementById('acBox');
+    const m = box._results[i];
+    const input = document.getElementById('orderInput');
+    input.value = `${m.ko} ${m.price}`;
+    box.classList.remove('show');
+    box.innerHTML = '';
+    autoResize(input);
+  }
+
+  function hideAC() { setTimeout(() => { document.getElementById('acBox').classList.remove('show'); }, 200); }
+  function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addOrder(); } }
+  function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; }
 
   // onclick에서 접근 가능하도록 전역 등록
   window.openTable = openTable;
@@ -1172,6 +492,8 @@
   window.showAC = showAC;
   window.hideAC = hideAC;
   window.selectMenu = selectMenu;
+
+  load();
 </script>
 </body>
 </html>
