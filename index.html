@@ -267,8 +267,13 @@
 
   function getSidesForText(text) {
     const t = normalize(text);
+    // 짧은 키워드(2자 이하)는 정확히 포함될 때만 매칭 (오버매칭 방지)
     for (const m of MENU) {
-      if (m.keywords && m.keywords.some(k => t.includes(normalize(k)))) return m.sides;
+      if (m.keywords && m.keywords.some(k => {
+        const nk = normalize(k);
+        if (nk.length <= 2) return t === nk || t.startsWith(nk) || t.endsWith(nk);
+        return t.includes(nk);
+      })) return m.sides;
     }
     return [];
   }
@@ -287,7 +292,17 @@
   // Firebase 실시간 동기화
   function load() {
     onValue(ordersRef, (snapshot) => {
-      orders = snapshot.val() || {};
+      // Firebase는 배열을 객체로 저장하므로 안전하게 변환
+      const raw = snapshot.val() || {};
+      orders = {};
+      for (const table in raw) {
+        const tableData = raw[table];
+        if (Array.isArray(tableData)) {
+          orders[table] = tableData.filter(Boolean); // null 제거
+        } else if (tableData && typeof tableData === 'object') {
+          orders[table] = Object.values(tableData).filter(Boolean);
+        }
+      }
       document.getElementById('syncDot').classList.remove('off');
       document.getElementById('syncText').textContent = '실시간 연결';
       refreshAll();
@@ -299,7 +314,18 @@
   }
 
   function save() {
-    set(ordersRef, orders);
+    const toSave = {};
+    for (const table in orders) {
+      if (orders[table] && orders[table].length > 0) {
+        toSave[table] = orders[table];
+      }
+    }
+    set(ordersRef, Object.keys(toSave).length > 0 ? toSave : null)
+      .catch(() => {
+        document.getElementById('syncDot').classList.add('off');
+        document.getElementById('syncText').textContent = '저장 실패!';
+        alert('⚠️ 저장 실패! 인터넷 연결을 확인해주세요.');
+      });
   }
 
   function getOrders(t) { return orders[t] || []; }
@@ -328,10 +354,11 @@
     const allItems = [];
     for (let t = 1; t <= 12; t++) {
       getOrders(t).forEach((item, idx) => {
-        allItems.push({ table: t, idx, text: item.text, time: item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
+        allItems.push({ table: t, idx, text: item.text, time: item.time, id: item.id || item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
       });
     }
-    allItems.sort((a,b) => a.time.localeCompare(b.time));
+    // id(timestamp) 기준 정렬 — 같은 분에 들어온 주문도 순서 정확
+    allItems.sort((a,b) => a.id.localeCompare(b.id));
 
     const el = document.getElementById('queueList');
     document.getElementById('queueCountBadge').textContent = allItems.length;
@@ -339,7 +366,7 @@
     if (allItems.length === 0) { el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>'; return; }
 
     el.innerHTML = allItems.map((item, i) => {
-      const sidesHtml = item.sides.length > 0 ? `<div class="side-checks">${item.sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${item.table},${item.idx},'${s}',${i})">${s}</button>`).join('')}</div>` : '';
+      const sidesHtml = item.sides.length > 0 ? `<div class="side-checks">${item.sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${item.table},'${item.id}','${s}',${i})">${s}</button>`).join('')}</div>` : '';
       return `<div class="queue-item" id="qi-${i}">
         <div class="queue-table-tag">${item.table}</div>
         <div style="flex:1;min-width:0;">
@@ -347,7 +374,7 @@
           <div class="queue-item-time">${item.time} 주문</div>
           ${sidesHtml}
         </div>
-        <button class="queue-done-btn" onclick="serveItem(${item.table},${item.idx},${i})">✓</button>
+        <button class="queue-done-btn" onclick="serveItem(${item.table},'${item.id}',${i})">✓</button>
       </div>`;
     }).join('');
   }
@@ -372,15 +399,20 @@
   function renderOrders() {
     const list = getOrders(currentTable);
     const el = document.getElementById('ordersList');
+    const body = document.querySelector('.modal-body');
+    const scrollTop = body ? body.scrollTop : 0;
+
     document.getElementById('orderCount').textContent = list.length + '개';
     document.getElementById('modalSubtitle').textContent = list.length > 0 ? `${list.length}개 주문 중` : '주문 없음';
     if (list.length === 0) { el.innerHTML = `<div class="empty-state"><span class="icon">📝</span>아직 주문이 없어요</div>`; return; }
-    el.innerHTML = list.map((item, idx) => `
+    el.innerHTML = list.map((item) => `
       <div class="order-item">
         <div class="order-item-time">${item.time}</div>
         <div class="order-item-text">${escapeHtml(item.text)}</div>
-        <button class="order-item-del" onclick="deleteOrder(${idx})">✕</button>
+        <button class="order-item-del" onclick="deleteOrder('${item.id || item.time}')">✕</button>
       </div>`).join('');
+
+    if (body) body.scrollTop = scrollTop;
   }
 
   function addOrder() {
@@ -390,7 +422,8 @@
     if (!orders[currentTable]) orders[currentTable] = [];
     const now = new Date();
     const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-    orders[currentTable].push({ text, time });
+    const id = now.getTime().toString(); // 고유 ID (timestamp)
+    orders[currentTable].push({ text, time, id });
     input.value = '';
     input.style.height = 'auto';
     save();
@@ -398,12 +431,16 @@
     setTimeout(() => { const b = document.querySelector('.modal-body'); if(b) b.scrollTop = b.scrollHeight; }, 50);
   }
 
-  function deleteOrder(idx) {
-    if (!currentTable) return;
-    orders[currentTable].splice(idx, 1);
-    if (orders[currentTable].length === 0) delete orders[currentTable];
-    save();
-    renderOrders();
+  function deleteOrder(itemId) {
+    if (!currentTable || !orders[currentTable]) return;
+    if (!confirm('이 주문을 삭제할까요?')) return;
+    const idx = orders[currentTable].findIndex(item => (item.id || item.time) === itemId);
+    if (idx !== -1) {
+      orders[currentTable].splice(idx, 1);
+      if (orders[currentTable].length === 0) delete orders[currentTable];
+      save();
+      renderOrders();
+    }
   }
 
   function clearAllOrders() {
@@ -414,22 +451,31 @@
     renderOrders();
   }
 
-  function serveItem(table, idx, queueIdx) {
+  const servingInProgress = new Set();
+
+  function serveItem(table, itemId, queueIdx) {
+    const key = `${table}-${itemId}`;
+    if (servingInProgress.has(key)) return;
+    servingInProgress.add(key);
+
     const el = document.getElementById('qi-' + queueIdx);
-    if (el) {
-      el.classList.add('served');
-      setTimeout(() => {
-        if (orders[table]) {
+    if (el) el.classList.add('served');
+    setTimeout(() => {
+      servingInProgress.delete(key);
+      if (orders[table]) {
+        const idx = orders[table].findIndex(item => (item.id || item.time) === itemId);
+        if (idx !== -1) {
           orders[table].splice(idx, 1);
           if (orders[table].length === 0) delete orders[table];
           save();
         }
-      }, 320);
-    }
+      }
+    }, 320);
   }
 
-  function toggleSide(table, idx, side, queueIdx) {
-    const item = orders[table] && orders[table][idx];
+  function toggleSide(table, itemId, side, queueIdx) {
+    if (!orders[table]) return;
+    const item = orders[table].find(it => (it.id || it.time) === itemId);
     if (!item) return;
     if (!item.checkedSides) item.checkedSides = [];
     const pos = item.checkedSides.indexOf(side);
@@ -439,7 +485,7 @@
     const sides = getSidesForText(item.text);
     const sidesEl = document.querySelector(`#qi-${queueIdx} .side-checks`);
     if (sidesEl) {
-      sidesEl.innerHTML = sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${table},${idx},'${s}',${queueIdx})">${s}</button>`).join('');
+      sidesEl.innerHTML = sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${table},'${itemId}','${s}',${queueIdx})">${s}</button>`).join('');
     }
   }
 
@@ -471,6 +517,8 @@
     box.classList.remove('show');
     box.innerHTML = '';
     autoResize(input);
+    // 선택 즉시 주문 추가
+    addOrder();
   }
 
   function hideAC() { setTimeout(() => { document.getElementById('acBox').classList.remove('show'); }, 200); }
