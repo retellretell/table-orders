@@ -414,11 +414,12 @@
       const isSauceAside = item.text.includes('🥣소스따로');
       const rawText = isSauceAside ? item.text.replace('🥣소스따로', '').trimEnd() : item.text;
       const displayText = q ? highlightNormalized(rawText, rawQ) : escapeHtml(rawText);
+      const sauceTag = isSauceAside ? ' <span class="sauce-aside-tag">🥣 소스따로</span>' : '';
       const sidesHtml = item.sides.length > 0 ? `<div class="side-checks">${item.sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${item.table},'${item.id}','${s}',${i})">${s}</button>`).join('')}</div>` : '';
       return `<div class="queue-item ${q ? 'highlight' : ''}" id="qi-${i}">
         <div class="queue-table-tag">${item.table}</div>
         <div style="flex:1;min-width:0;">
-          <div class="queue-item-text">${displayText}${isSauceAside ? ' <span class="sauce-aside-tag">🥣소스따로</span>' : ''}</div>
+          <div class="queue-item-text">${displayText}${sauceTag}</div>
           <div class="queue-item-time">${item.time} 주문</div>
           ${sidesHtml}
         </div>
