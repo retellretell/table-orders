@@ -256,7 +256,7 @@
     { ko: '숯불갈비 스테이크', en: 'Charcoal-Grilled Galbi Steak', price: '$35', sides: ['🍚 밥'],
       keywords: ['숯불','갈비','스테이크','charcoal','grilled','galbi','steak','ribs'] },
     { ko: 'KFC 치킨', en: 'Korean Fried Chicken Thigh', price: '$17', sides: ['🍚 밥'],
-      keywords: ['kfc','치킨','닭','닭다리','korean','fried','chicken','thigh','프라이드'] },
+      keywords: ['kfc','치킨','닭다리','korean','fried','chicken','thigh','프라이드'] },
     { ko: '조랭이떡볶이', en: 'Mini Rice Cake Tteokbokki', price: '$16', sides: [],
       keywords: ['조랭이','떡볶이','떡','tteokbokki','ricecake','spicy'] },
     { ko: '삼겹살 튀김', en: 'Crispy Pork Belly', price: '$18', sides: [],
@@ -293,7 +293,28 @@
       keywords: ['생맥주','생','draft','라구니타스','모델로','lagunitas','modelo'] },
   ];
 
+  // ===== 상수 =====
+  const SAUCE_ASIDE_TAG   = '🥣소스따로';
+  const CLASSIC_CUTLET_KO = '서울 경양식 돈까스';
+  const SERVE_ANIM_MS     = 320; // 서빙 슬라이드 애니메이션 시간
+
+  // ===== 유틸 =====
   function normalize(str) { return str.toLowerCase().replace(/\s/g,''); }
+
+  /** 테이블의 주문 배열에서 itemId로 항목 반환 */
+  function findItemById(table, itemId) {
+    return (orders[table] || []).find(it => (it.id || it.time) === itemId) || null;
+  }
+
+  /** 테이블의 주문 배열에서 itemId로 인덱스 반환 */
+  function findItemIndexById(table, itemId) {
+    return (orders[table] || []).findIndex(it => (it.id || it.time) === itemId);
+  }
+
+  /** 빈 테이블 키 정리 */
+  function cleanTableOrders(table) {
+    if (orders[table] && orders[table].length === 0) delete orders[table];
+  }
 
   function getSidesForText(text) {
     const t = normalize(text);
@@ -383,19 +404,12 @@
   }
 
   function renderQueue() {
-    const allItems = [];
-    for (const t of TABLE_IDS) {
-      getOrders(t).forEach((item) => {
-        allItems.push({ table: t, text: item.text, time: item.time, id: item.id || item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
-      });
-    }
-    allItems.sort((a,b) => a.id.localeCompare(b.id));
+    const allItems = buildQueueItems();
+    allItems.sort((a, b) => a.id.localeCompare(b.id));
 
-    const searchEl = document.getElementById('queueSearch');
-    const rawQ = searchEl.value.trim();
+    const rawQ = document.getElementById('queueSearch').value.trim();
     const q = normalize(rawQ);
-
-    const filtered = q ? allItems.filter(item => normalize(item.text).includes(q)) : allItems;
+    const filtered = q ? filterQueueItems(allItems, q) : allItems;
 
     const el = document.getElementById('queueList');
     document.getElementById('queueCountBadge').textContent = allItems.length;
@@ -403,23 +417,60 @@
     if (allItems.length === 0) { el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>'; return; }
     if (filtered.length === 0) { el.innerHTML = '<div class="queue-empty">검색 결과가 없어요</div>'; return; }
 
-    el.innerHTML = filtered.map((item, i) => {
-      // 소스따로: 원본 텍스트에서 먼저 제거 후 HTML 변환 (em 태그 끼어들기 방지)
-      const isSauceAside = item.text.includes('🥣소스따로');
-      const rawText = isSauceAside ? item.text.replace('🥣소스따로', '').trimEnd() : item.text;
-      const displayText = q ? highlightNormalized(rawText, rawQ) : escapeHtml(rawText);
-      const sauceTag = isSauceAside ? ' <span class="sauce-aside-tag">🥣 소스따로</span>' : '';
-      const sidesHtml = item.sides.length > 0 ? `<div class="side-checks">${item.sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${item.table},'${item.id}','${s}',${i})">${s}</button>`).join('')}</div>` : '';
-      return `<div class="queue-item ${q ? 'highlight' : ''}" id="qi-${i}">
-        <div class="queue-table-tag">${item.table}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="queue-item-text">${displayText}${sauceTag}</div>
-          <div class="queue-item-time">${item.time} 주문</div>
-          ${sidesHtml}
-        </div>
-        <button class="queue-done-btn" onclick="serveItem(${item.table},'${item.id}',${i})">✓</button>
-      </div>`;
-    }).join('');
+    el.innerHTML = filtered.map((item, i) => renderQueueItem(item, i, q, rawQ)).join('');
+  }
+
+  /** 전체 테이블 주문을 큐 아이템 배열로 변환 */
+  function buildQueueItems() {
+    const allItems = [];
+    for (const t of TABLE_IDS) {
+      getOrders(t).forEach(item => {
+        allItems.push({
+          table: t,
+          text: item.text,
+          time: item.time,
+          id: item.id || item.time,
+          sides: getSidesForText(item.text),
+          checkedSides: item.checkedSides || [],
+        });
+      });
+    }
+    return allItems;
+  }
+
+  /** 검색어로 큐 아이템 필터링 */
+  function filterQueueItems(allItems, q) {
+    return allItems.filter(item => {
+      if (normalize(item.text).includes(q)) return true;
+      const matchedMenu = MENU.find(m => normalize(item.text).includes(normalize(m.ko)));
+      if (!matchedMenu) return false;
+      return matchedMenu.keywords && matchedMenu.keywords.some(k => normalize(k).includes(q));
+    });
+  }
+
+  /** 큐 아이템 하나의 HTML 생성 */
+  function renderQueueItem(item, i, q, rawQ) {
+    const isSauceAside = item.text.includes(SAUCE_ASIDE_TAG);
+    const rawText = isSauceAside ? item.text.replace(SAUCE_ASIDE_TAG, '').trimEnd() : item.text;
+    const displayText = q ? highlightNormalized(rawText, rawQ) : escapeHtml(rawText);
+    const sauceTag = isSauceAside ? ` <span class="sauce-aside-tag">🥣 소스따로</span>` : '';
+
+    const sidesHtml = item.sides.length > 0
+      ? `<div class="side-checks">${item.sides.map(s => {
+          const checked = item.checkedSides.includes(s) ? 'checked' : '';
+          return `<button class="side-chip ${checked}" onclick="toggleSide('${item.table}','${item.id}','${s}',${i})">${s}</button>`;
+        }).join('')}</div>`
+      : '';
+
+    return `<div class="queue-item ${q ? 'highlight' : ''}" id="qi-${i}">
+      <div class="queue-table-tag">${item.table}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="queue-item-text">${displayText}${sauceTag}</div>
+        <div class="queue-item-time">${item.time} 주문</div>
+        ${sidesHtml}
+      </div>
+      <button class="queue-done-btn" onclick="serveItem('${item.table}','${item.id}',${i})">✓</button>
+    </div>`;
   }
 
   // 공백을 무시하고 하이라이트 — 이모지(surrogate pair) 안전 처리
@@ -476,8 +527,8 @@
     document.getElementById('modalSubtitle').textContent = list.length > 0 ? `${list.length}개 주문 중` : '주문 없음';
     if (list.length === 0) { el.innerHTML = `<div class="empty-state"><span class="icon">📝</span>아직 주문이 없어요</div>`; return; }
     el.innerHTML = list.map((item) => {
-      const isClassic = item.text.includes('서울 경양식 돈까스');
-      const isSauceAside = item.text.includes('🥣소스따로');
+      const isClassic    = item.text.includes(CLASSIC_CUTLET_KO);
+      const isSauceAside = item.text.includes(SAUCE_ASIDE_TAG);
       const sauceBtn = isClassic
         ? `<button class="sauce-toggle-btn ${isSauceAside ? 'active' : ''}" onclick="toggleSauceAside('${item.id || item.time}')">🥣 소스따로</button>`
         : '';
@@ -511,10 +562,10 @@
   function deleteOrder(itemId) {
     if (!currentTable || !orders[currentTable]) return;
     if (!confirm('이 주문을 삭제할까요?')) return;
-    const idx = orders[currentTable].findIndex(item => (item.id || item.time) === itemId);
+    const idx = findItemIndexById(currentTable, itemId);
     if (idx !== -1) {
       orders[currentTable].splice(idx, 1);
-      if (orders[currentTable].length === 0) delete orders[currentTable];
+      cleanTableOrders(currentTable);
       save();
       renderOrders();
     }
@@ -535,24 +586,25 @@
     if (servingInProgress.has(key)) return;
     servingInProgress.add(key);
 
+    // 데이터는 즉시 삭제 → Firebase 레이스 방지
+    const idx = findItemIndexById(table, itemId);
+    if (idx === -1) { servingInProgress.delete(key); return; }
+    orders[table].splice(idx, 1);
+    cleanTableOrders(table);
+    save();
+
+    // 애니메이션은 시각 효과만 (데이터는 이미 삭제됨)
     const el = document.getElementById('qi-' + queueIdx);
-    if (el) el.classList.add('served');
-    setTimeout(() => {
+    if (el) {
+      el.classList.add('served');
+      setTimeout(() => { servingInProgress.delete(key); }, SERVE_ANIM_MS);
+    } else {
       servingInProgress.delete(key);
-      if (orders[table]) {
-        const idx = orders[table].findIndex(item => (item.id || item.time) === itemId);
-        if (idx !== -1) {
-          orders[table].splice(idx, 1);
-          if (orders[table].length === 0) delete orders[table];
-          save();
-        }
-      }
-    }, 320);
+    }
   }
 
   function toggleSide(table, itemId, side, queueIdx) {
-    if (!orders[table]) return;
-    const item = orders[table].find(it => (it.id || it.time) === itemId);
+    const item = findItemById(table, itemId);
     if (!item) return;
     if (!item.checkedSides) item.checkedSides = [];
     const pos = item.checkedSides.indexOf(side);
@@ -562,14 +614,16 @@
     const sides = getSidesForText(item.text);
     const sidesEl = document.querySelector(`#qi-${queueIdx} .side-checks`);
     if (sidesEl) {
-      sidesEl.innerHTML = sides.map(s => `<button class="side-chip ${item.checkedSides.includes(s)?'checked':''}" onclick="toggleSide(${table},'${itemId}','${s}',${queueIdx})">${s}</button>`).join('');
+      sidesEl.innerHTML = sides.map(s => {
+        const checked = item.checkedSides.includes(s) ? 'checked' : '';
+        return `<button class="side-chip ${checked}" onclick="toggleSide('${table}','${itemId}','${s}',${queueIdx})">${s}</button>`;
+      }).join('');
     }
   }
 
   function clearServedAll() {
     if (!confirm('모든 주문을 완료 처리할까요?')) return;
     orders = {};
-    // 검색창도 초기화 - 다음 주문이 필터에 걸리지 않게
     const searchEl = document.getElementById('queueSearch');
     if (searchEl) searchEl.value = '';
     save();
@@ -589,13 +643,12 @@
   }
 
   function toggleSauceAside(itemId) {
-    if (!currentTable || !orders[currentTable]) return;
-    const item = orders[currentTable].find(it => (it.id || it.time) === itemId);
+    const item = findItemById(currentTable, itemId);
     if (!item) return;
-    if (item.text.includes('🥣소스따로')) {
-      item.text = item.text.replace(' 🥣소스따로', '').trimEnd();
+    if (item.text.includes(SAUCE_ASIDE_TAG)) {
+      item.text = item.text.replace(' ' + SAUCE_ASIDE_TAG, '').trimEnd();
     } else {
-      item.text = item.text + ' 🥣소스따로';
+      item.text = item.text + ' ' + SAUCE_ASIDE_TAG;
     }
     save();
     renderOrders();
@@ -606,12 +659,25 @@
     const q = val.trim();
     if (!q) { box.classList.remove('show'); box.innerHTML = ''; return; }
     const qn = normalize(q);
-    const results = MENU.filter(m => normalize(m.ko).includes(qn) || normalize(m.en).includes(qn) || (m.keywords && m.keywords.some(k => normalize(k).includes(qn) || qn.includes(normalize(k))))).slice(0,8);
+    const results = MENU.filter(m =>
+      normalize(m.ko).includes(qn) ||
+      normalize(m.en).includes(qn) ||
+      (m.keywords && m.keywords.some(k => normalize(k).includes(qn) || qn.includes(normalize(k))))
+    ).slice(0, 8);
     if (!results.length) { box.classList.remove('show'); box.innerHTML = ''; return; }
-    box.innerHTML = results.map((m,i) => `<div class="ac-item" ontouchend="selectMenu(${i},event)" onclick="selectMenu(${i},event)"><div class="ac-left"><div class="ac-name">${highlight(m.ko,q)}</div><div class="ac-en">${highlight(m.en,q)}</div></div><div class="ac-price">${m.price}</div></div>`).join('');
+    box.innerHTML = results.map((m, i) => `
+      <div class="ac-item" ontouchend="selectMenu(${i},event)" onclick="selectMenu(${i},event)">
+        <div class="ac-left">
+          <div class="ac-name">${highlight(m.ko, q)}</div>
+          <div class="ac-en">${highlight(m.en, q)}</div>
+        </div>
+        <div class="ac-price">${m.price}</div>
+      </div>`).join('');
     box._results = results;
     box.classList.add('show');
-  } { setTimeout(() => { document.getElementById('acBox').classList.remove('show'); }, 200); }
+  }
+
+  function hideAC() { setTimeout(() => { document.getElementById('acBox').classList.remove('show'); }, 200); }
   function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addOrder(); } }
   function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; }
 
