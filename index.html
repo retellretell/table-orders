@@ -23,9 +23,6 @@
   .floor-title { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
   .floor-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  .row-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
-  .row-ends { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-
   .table-btn { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 10px 4px; min-width: 0; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; -webkit-tap-highlight-color: transparent; user-select: none; }
   .table-btn:active { transform: scale(0.95); }
   .table-btn.has-order { border-color: var(--accent); background: rgba(255,107,53,0.08); }
@@ -117,18 +114,10 @@
   .queue-item.highlight { border-color: var(--accent2); background: rgba(255,209,102,0.07); }
   .queue-item-text em { color: var(--accent2); font-style: normal; font-weight: 900; }
 
-  /* 소스 옵션 팝업 */
-  .sauce-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-  .sauce-popup-overlay.open { display: flex; }
-  .sauce-popup { background: var(--surface); border-radius: 20px; padding: 24px 20px; width: 80%; max-width: 320px; border: 1px solid var(--border); animation: fadeIn 0.2s ease; text-align: center; }
-  .sauce-popup-title { font-size: 16px; font-weight: 900; color: var(--text); margin-bottom: 6px; }
-  .sauce-popup-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
-  .sauce-popup-btns { display: flex; flex-direction: column; gap: 10px; }
-  .sauce-btn { padding: 14px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.15s; }
-  .sauce-btn.default { background: var(--card); border: 1.5px solid var(--border); color: var(--text); }
-  .sauce-btn.aside { background: rgba(255,107,53,0.12); border: 1.5px solid var(--accent); color: var(--accent); }
-  .sauce-btn.cancel { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 13px; padding: 10px; }
-  .sauce-btn:active { transform: scale(0.97); }
+  /* 소스 따로 토글 */
+  .sauce-toggle-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; font-family: inherit; padding: 3px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+  .sauce-toggle-btn.active { background: rgba(255,107,53,0.15); border-color: var(--accent); color: var(--accent); }
+  .sauce-toggle-btn:active { transform: scale(0.95); }
   .sauce-aside-tag { display: inline-block; background: rgba(255,107,53,0.15); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
 </style>
 </head>
@@ -145,24 +134,40 @@
 <div class="layout-section">
   <div class="floor-map">
     <div class="floor-title">홀 배치도</div>
-    <div class="row-5">
-      <div class="table-btn" onclick="openTable(1)" id="tbl-1"><div class="order-badge" id="badge-1"></div><div class="table-icon">1</div><div class="table-name">T1</div></div>
-      <div class="table-btn" onclick="openTable(4)" id="tbl-4"><div class="order-badge" id="badge-4"></div><div class="table-icon">4</div><div class="table-name">T4</div></div>
-      <div class="table-btn" onclick="openTable(6)" id="tbl-6"><div class="order-badge" id="badge-6"></div><div class="table-icon">6</div><div class="table-name">T6</div></div>
-      <div class="table-btn" onclick="openTable(8)" id="tbl-8"><div class="order-badge" id="badge-8"></div><div class="table-icon">8</div><div class="table-name">T8</div></div>
-      <div class="table-btn" onclick="openTable(10)" id="tbl-10"><div class="order-badge" id="badge-10"></div><div class="table-icon">10</div><div class="table-name">T10</div></div>
-    </div>
-    <div class="row-5">
-      <div class="table-btn" onclick="openTable(2)" id="tbl-2"><div class="order-badge" id="badge-2"></div><div class="table-icon">2</div><div class="table-name">T2</div></div>
-      <div class="table-btn" onclick="openTable(5)" id="tbl-5"><div class="order-badge" id="badge-5"></div><div class="table-icon">5</div><div class="table-name">T5</div></div>
-      <div class="table-btn" onclick="openTable(7)" id="tbl-7"><div class="order-badge" id="badge-7"></div><div class="table-icon">7</div><div class="table-name">T7</div></div>
-      <div class="table-btn" onclick="openTable(9)" id="tbl-9"><div class="order-badge" id="badge-9"></div><div class="table-icon">9</div><div class="table-name">T9</div></div>
-      <div class="table-btn" onclick="openTable(11)" id="tbl-11"><div class="order-badge" id="badge-11"></div><div class="table-icon">11</div><div class="table-name">T11</div></div>
-    </div>
-    <div class="row-ends">
-      <div class="table-btn" onclick="openTable(3)" id="tbl-3"><div class="order-badge" id="badge-3"></div><div class="table-icon">3</div><div class="table-name">T3</div></div>
-      <div style="grid-column:span 3;"></div>
-      <div class="table-btn" onclick="openTable(12)" id="tbl-12"><div class="order-badge" id="badge-12"></div><div class="table-icon">12</div><div class="table-name">T12</div></div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(4,auto);gap:6px;">
+      <!-- 1열 -->
+      <div class="table-btn" onclick="openTable('1')" id="tbl-1"><div class="order-badge" id="badge-1"></div><div class="table-icon">1</div><div class="table-name">T1</div></div>
+      <!-- 가운데 1행 -->
+      <div></div>
+      <div class="table-btn" onclick="openTable('4')" id="tbl-4"><div class="order-badge" id="badge-4"></div><div class="table-icon">4</div><div class="table-name">T4</div></div>
+      <div class="table-btn" onclick="openTable('5')" id="tbl-5"><div class="order-badge" id="badge-5"></div><div class="table-icon">5</div><div class="table-name">T5</div></div>
+      <div class="table-btn" onclick="openTable('6')" id="tbl-6"><div class="order-badge" id="badge-6"></div><div class="table-icon">6</div><div class="table-name">T6</div></div>
+      <div></div>
+      <!-- 7열 -->
+      <div class="table-btn" onclick="openTable('10')" id="tbl-10"><div class="order-badge" id="badge-10"></div><div class="table-icon">10</div><div class="table-name">T10</div></div>
+
+      <!-- 1열 -->
+      <div class="table-btn" onclick="openTable('2')" id="tbl-2"><div class="order-badge" id="badge-2"></div><div class="table-icon">2</div><div class="table-name">T2</div></div>
+      <!-- 가운데 2행 -->
+      <div></div>
+      <div class="table-btn" onclick="openTable('7')" id="tbl-7"><div class="order-badge" id="badge-7"></div><div class="table-icon">7</div><div class="table-name">T7</div></div>
+      <div class="table-btn" onclick="openTable('8')" id="tbl-8"><div class="order-badge" id="badge-8"></div><div class="table-icon">8</div><div class="table-name">T8</div></div>
+      <div class="table-btn" onclick="openTable('9')" id="tbl-9"><div class="order-badge" id="badge-9"></div><div class="table-icon">9</div><div class="table-name">T9</div></div>
+      <div></div>
+      <!-- 7열 -->
+      <div class="table-btn" onclick="openTable('11')" id="tbl-11"><div class="order-badge" id="badge-11"></div><div class="table-icon">11</div><div class="table-name">T11</div></div>
+
+      <!-- 1열 -->
+      <div class="table-btn" onclick="openTable('3-1')" id="tbl-3-1"><div class="order-badge" id="badge-3-1"></div><div class="table-icon" style="font-size:13px;">3-1</div><div class="table-name">T3-1</div></div>
+      <div></div><div></div><div></div><div></div><div></div>
+      <!-- 7열 -->
+      <div class="table-btn" onclick="openTable('12-1')" id="tbl-12-1"><div class="order-badge" id="badge-12-1"></div><div class="table-icon" style="font-size:13px;">12-1</div><div class="table-name">T12-1</div></div>
+
+      <!-- 1열 -->
+      <div class="table-btn" onclick="openTable('3-2')" id="tbl-3-2"><div class="order-badge" id="badge-3-2"></div><div class="table-icon" style="font-size:13px;">3-2</div><div class="table-name">T3-2</div></div>
+      <div></div><div></div><div></div><div></div><div></div>
+      <!-- 7열 -->
+      <div class="table-btn" onclick="openTable('12-2')" id="tbl-12-2"><div class="order-badge" id="badge-12-2"></div><div class="table-icon" style="font-size:13px;">12-2</div><div class="table-name">T12-2</div></div>
     </div>
   </div>
 </div>
@@ -176,19 +181,6 @@
     <input type="text" id="queueSearch" class="queue-search-input" placeholder="🔍 메뉴 검색... (예: 규카츠, 안심)" oninput="renderQueue()">
   </div>
   <div id="queueList" class="queue-list"><div class="queue-empty">아직 주문이 없어요</div></div>
-</div>
-
-<!-- 소스 옵션 팝업 -->
-<div class="sauce-popup-overlay" id="saucePopup">
-  <div class="sauce-popup">
-    <div class="sauce-popup-title">🍛 서울 경양식 돈까스</div>
-    <div class="sauce-popup-sub">소스 옵션을 선택해주세요</div>
-    <div class="sauce-popup-btns">
-      <button class="sauce-btn default" onclick="confirmSauceOption('default')">🫙 소스 뿌려서 (기본)</button>
-      <button class="sauce-btn aside" onclick="confirmSauceOption('aside')">🥣 소스 온더사이드 (따로)</button>
-      <button class="sauce-btn cancel" onclick="cancelSauceOption()">취소</button>
-    </div>
-  </div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
@@ -261,9 +253,9 @@
       keywords: ['문어','옥토퍼스','octopus','까스','카츠','katsu'] },
     { ko: '치즈 까스', en: 'Cheese Katsu', price: '$26', sides: ['🍚 밥'],
       keywords: ['치즈','cheese','까스','카츠','katsu'] },
-    { ko: '숯불갈비 스테이크', en: 'Charcoal-Grilled Galbi Steak', price: '$35', sides: [],
+    { ko: '숯불갈비 스테이크', en: 'Charcoal-Grilled Galbi Steak', price: '$35', sides: ['🍚 밥'],
       keywords: ['숯불','갈비','스테이크','charcoal','grilled','galbi','steak','ribs'] },
-    { ko: 'KFC 치킨', en: 'Korean Fried Chicken Thigh', price: '$17', sides: [],
+    { ko: 'KFC 치킨', en: 'Korean Fried Chicken Thigh', price: '$17', sides: ['🍚 밥'],
       keywords: ['kfc','치킨','닭','닭다리','korean','fried','chicken','thigh','프라이드'] },
     { ko: '조랭이떡볶이', en: 'Mini Rice Cake Tteokbokki', price: '$16', sides: [],
       keywords: ['조랭이','떡볶이','떡','tteokbokki','ricecake','spicy'] },
@@ -368,12 +360,14 @@
 
   function getOrders(t) { return orders[t] || []; }
 
+  const TABLE_IDS = ['1','2','3-1','3-2','4','5','6','7','8','9','10','11','12-1','12-2'];
+
   function refreshAll() {
     let active = 0;
-    for (let i = 1; i <= 12; i++) {
-      const list = getOrders(i);
-      const btn = document.getElementById('tbl-' + i);
-      const badge = document.getElementById('badge-' + i);
+    for (const t of TABLE_IDS) {
+      const list = getOrders(t);
+      const btn = document.getElementById('tbl-' + t);
+      const badge = document.getElementById('badge-' + t);
       if (!btn) continue;
       if (list.length > 0) {
         btn.classList.add('has-order');
@@ -390,7 +384,7 @@
 
   function renderQueue() {
     const allItems = [];
-    for (let t = 1; t <= 12; t++) {
+    for (const t of TABLE_IDS) {
       getOrders(t).forEach((item) => {
         allItems.push({ table: t, text: item.text, time: item.time, id: item.id || item.time, sides: getSidesForText(item.text), checkedSides: item.checkedSides || [] });
       });
@@ -481,12 +475,19 @@
     document.getElementById('orderCount').textContent = list.length + '개';
     document.getElementById('modalSubtitle').textContent = list.length > 0 ? `${list.length}개 주문 중` : '주문 없음';
     if (list.length === 0) { el.innerHTML = `<div class="empty-state"><span class="icon">📝</span>아직 주문이 없어요</div>`; return; }
-    el.innerHTML = list.map((item) => `
-      <div class="order-item">
+    el.innerHTML = list.map((item) => {
+      const isClassic = item.text.includes('서울 경양식 돈까스');
+      const isSauceAside = item.text.includes('🥣소스따로');
+      const sauceBtn = isClassic
+        ? `<button class="sauce-toggle-btn ${isSauceAside ? 'active' : ''}" onclick="toggleSauceAside('${item.id || item.time}')">🥣 소스따로</button>`
+        : '';
+      return `<div class="order-item">
         <div class="order-item-time">${item.time}</div>
         <div class="order-item-text">${escapeHtml(item.text)}</div>
+        ${sauceBtn}
         <button class="order-item-del" onclick="deleteOrder('${item.id || item.time}')">✕</button>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     if (body) body.scrollTop = scrollTop;
   }
@@ -575,14 +576,29 @@
     if (currentTable) renderOrders();
   }
 
-  // 소스 팝업 상태 - 객체로 관리해 덮어쓰기 방지
-  const sauceState = { pendingText: null };
+  function selectMenu(i, e) {
+    e.preventDefault();
+    const box = document.getElementById('acBox');
+    const m = box._results[i];
+    box.classList.remove('show');
+    box.innerHTML = '';
+    const input = document.getElementById('orderInput');
+    input.value = `${m.ko} ${m.price}`;
+    autoResize(input);
+    addOrder();
+  }
 
-  function cancelSauceOption() {
-    document.getElementById('saucePopup').classList.remove('open');
-    sauceState.pendingText = null;
-    // 입력창 포커스 복구
-    setTimeout(() => document.getElementById('orderInput').focus(), 100);
+  function toggleSauceAside(itemId) {
+    if (!currentTable || !orders[currentTable]) return;
+    const item = orders[currentTable].find(it => (it.id || it.time) === itemId);
+    if (!item) return;
+    if (item.text.includes('🥣소스따로')) {
+      item.text = item.text.replace(' 🥣소스따로', '').trimEnd();
+    } else {
+      item.text = item.text + ' 🥣소스따로';
+    }
+    save();
+    renderOrders();
   }
 
   function showAC(val) {
@@ -595,40 +611,7 @@
     box.innerHTML = results.map((m,i) => `<div class="ac-item" ontouchend="selectMenu(${i},event)" onclick="selectMenu(${i},event)"><div class="ac-left"><div class="ac-name">${highlight(m.ko,q)}</div><div class="ac-en">${highlight(m.en,q)}</div></div><div class="ac-price">${m.price}</div></div>`).join('');
     box._results = results;
     box.classList.add('show');
-  }
-
-  function selectMenu(i, e) {
-    e.preventDefault();
-    const box = document.getElementById('acBox');
-    const m = box._results[i];
-    box.classList.remove('show');
-    box.innerHTML = '';
-
-    if (m.ko === '서울 경양식 돈까스') {
-      sauceState.pendingText = `${m.ko} ${m.price}`;
-      document.getElementById('saucePopup').classList.add('open');
-      return;
-    }
-
-    const input = document.getElementById('orderInput');
-    input.value = `${m.ko} ${m.price}`;
-    autoResize(input);
-    addOrder();
-  }
-
-  function confirmSauceOption(option) {
-    document.getElementById('saucePopup').classList.remove('open');
-    if (!sauceState.pendingText) return;
-    const input = document.getElementById('orderInput');
-    input.value = option === 'aside'
-      ? `${sauceState.pendingText} 🥣소스따로`
-      : sauceState.pendingText;
-    sauceState.pendingText = null;
-    autoResize(input);
-    addOrder();
-  }
-
-  function hideAC() { setTimeout(() => { document.getElementById('acBox').classList.remove('show'); }, 200); }
+  } { setTimeout(() => { document.getElementById('acBox').classList.remove('show'); }, 200); }
   function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addOrder(); } }
   function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; }
 
@@ -641,6 +624,7 @@
   window.clearAllOrders = clearAllOrders;
   window.serveItem = serveItem;
   window.toggleSide = toggleSide;
+  window.toggleSauceAside = toggleSauceAside;
   window.clearServedAll = clearServedAll;
   window.renderQueue = renderQueue;
   window.handleKey = handleKey;
@@ -648,8 +632,6 @@
   window.showAC = showAC;
   window.hideAC = hideAC;
   window.selectMenu = selectMenu;
-  window.confirmSauceOption = confirmSauceOption;
-  window.cancelSauceOption = cancelSauceOption;
 
   load();
 </script>
