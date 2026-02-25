@@ -90,9 +90,12 @@
   .queue-clear-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-family: inherit; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
   .queue-empty { text-align: center; padding: 28px 0; color: var(--muted); font-size: 13px; background: var(--surface); border-radius: 14px; border: 1px dashed var(--border); }
   .queue-list { display: flex; flex-direction: column; gap: 8px; }
-  .queue-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; animation: fadeIn 0.2s ease; }
-  .queue-table-tag { background: var(--accent); color: white; font-size: 13px; font-weight: 900; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .queue-item-text { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .queue-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  .queue-col-title { font-size: 11px; font-weight: 900; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .queue-col { display: flex; flex-direction: column; gap: 8px; }
+  .queue-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 10px; display: flex; align-items: center; gap: 8px; animation: fadeIn 0.2s ease; }
+  .queue-table-tag { background: var(--accent); color: white; font-size: 11px; font-weight: 900; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .queue-item-text { font-size: 13px; font-weight: 600; line-height: 1.3; }
   .queue-item-time { font-size: 10px; color: var(--muted); margin-top: 2px; }
   .queue-done-btn { background: var(--green); border: none; color: #000; font-size: 16px; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-weight: 900; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
   .queue-done-btn:active { transform: scale(0.88); opacity: 0.8; }
@@ -114,14 +117,66 @@
   .queue-item.highlight { border-color: var(--accent2); background: rgba(255,209,102,0.07); }
   .queue-item-text em { color: var(--accent2); font-style: normal; font-weight: 900; }
 
+  /* 비밀번호 화면 */
+  .pin-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
+  .pin-overlay.hidden { display: none; }
+  .pin-logo { font-size: 40px; }
+  .pin-title { font-size: 20px; font-weight: 900; color: var(--text); }
+  .pin-subtitle { font-size: 13px; color: var(--muted); margin-top: -24px; }
+  .pin-dots { display: flex; gap: 16px; }
+  .pin-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--border); transition: background 0.15s; }
+  .pin-dot.filled { background: var(--accent); }
+  .pin-keypad { display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(4, 72px); gap: 12px; }
+  .pin-key { background: var(--surface); border: 1.5px solid var(--border); border-radius: 50%; font-size: 22px; font-weight: 700; font-family: inherit; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .pin-key:active { background: var(--card); transform: scale(0.92); }
+  .pin-key.confirm { background: var(--accent); border-color: var(--accent); color: white; font-size: 14px; font-weight: 900; }
+  .pin-key.confirm:active { background: #e55a27; }
+  .pin-key.del { font-size: 18px; }
+  .pin-error { color: var(--red); font-size: 13px; font-weight: 700; min-height: 18px; transition: opacity 0.2s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-8px); }
+    40%      { transform: translateX(8px); }
+    60%      { transform: translateX(-6px); }
+    80%      { transform: translateX(6px); }
+  }
+
   /* 소스 따로 토글 */
   .sauce-toggle-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; font-family: inherit; padding: 3px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
   .sauce-toggle-btn.active { background: rgba(255,107,53,0.15); border-color: var(--accent); color: var(--accent); }
   .sauce-toggle-btn:active { transform: scale(0.95); }
+  .spicy-toggle-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; font-family: inherit; padding: 3px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+  .spicy-toggle-btn.active { background: rgba(239,71,111,0.15); border-color: var(--red); color: var(--red); }
+  .spicy-toggle-btn:active { transform: scale(0.95); }
+  .spicy-tag { display: inline-block; background: rgba(239,71,111,0.15); border: 1px solid var(--red); color: var(--red); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
   .sauce-aside-tag { display: inline-block; background: rgba(255,107,53,0.15); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
 </style>
 </head>
 <body>
+
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-logo">🍽</div>
+  <div class="pin-title">Rice Junky</div>
+  <div class="pin-subtitle">비밀번호를 입력해주세요</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot" id="pd0"></div>
+  </div>
+  <div class="pin-error" id="pinError"></div>
+  <div class="pin-keypad">
+    <div class="pin-key" onclick="pinInput('1')">1</div>
+    <div class="pin-key" onclick="pinInput('2')">2</div>
+    <div class="pin-key" onclick="pinInput('3')">3</div>
+    <div class="pin-key" onclick="pinInput('4')">4</div>
+    <div class="pin-key" onclick="pinInput('5')">5</div>
+    <div class="pin-key" onclick="pinInput('6')">6</div>
+    <div class="pin-key" onclick="pinInput('7')">7</div>
+    <div class="pin-key" onclick="pinInput('8')">8</div>
+    <div class="pin-key" onclick="pinInput('9')">9</div>
+    <div class="pin-key del" onclick="pinDelete()">⌫</div>
+    <div class="pin-key" onclick="pinInput('0')">0</div>
+    <div class="pin-key confirm" onclick="pinConfirm()">확인</div>
+  </div>
+</div>
 
 <header>
   <h1>🍽 테이블 주문</h1>
@@ -268,7 +323,7 @@
     { ko: '꽈리고추 버섯구이', en: 'Blistered Shishito Peppers & Mushrooms', price: '$15', sides: [],
       keywords: ['꽈리','꽈리고추','버섯','구이','shishito','pepper','mushroom','blistered'] },
     { ko: '조개탕', en: 'Clam Soup (SPICY +$1)', price: '$16', sides: [],
-      keywords: ['조개','조개탕','clam','soup','spicy'] },
+      keywords: ['조개','조개탕','clam','클램','soup','spicy'] },
     { ko: '닭강정', en: 'Korean Sweet & Spicy Chicken Bites', price: '$14', sides: [],
       keywords: ['닭강정','강정','닭','chicken','sweet','spicy','bites'] },
     { ko: '베이컨 김치 새우 양배추 전', en: 'Bacon, Kimchi, Shrimp & Cabbage Jeon', price: '$18', sides: [],
@@ -296,6 +351,8 @@
   // ===== 상수 =====
   const SAUCE_ASIDE_TAG   = '🥣소스따로';
   const CLASSIC_CUTLET_KO = '서울 경양식 돈까스';
+  const SPICY_TAG         = '🌶️스파이시';
+  const CLAM_SOUP_KO      = '조개탕';
   const SERVE_ANIM_MS     = 320; // 서빙 슬라이드 애니메이션 시간
 
   // ===== 유틸 =====
@@ -318,11 +375,12 @@
 
   function getSidesForText(text) {
     const t = normalize(text);
-    // 짧은 키워드(2자 이하)는 정확히 포함될 때만 매칭 (오버매칭 방지)
+    // 짧은 키워드(2자 이하)는 완전일치 또는 앞에서 시작할 때만 매칭
+    // endsWith 제거: '규카츠'.endsWith('카츠')=true 같은 오매칭 방지
     for (const m of MENU) {
       if (m.keywords && m.keywords.some(k => {
         const nk = normalize(k);
-        if (nk.length <= 2) return t === nk || t.startsWith(nk) || t.endsWith(nk);
+        if (nk.length <= 2) return t === nk || t.startsWith(nk);
         return t.includes(nk);
       })) return m.sides;
     }
@@ -417,7 +475,33 @@
     if (allItems.length === 0) { el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>'; return; }
     if (filtered.length === 0) { el.innerHTML = '<div class="queue-empty">검색 결과가 없어요</div>'; return; }
 
-    el.innerHTML = filtered.map((item, i) => renderQueueItem(item, i, q, rawQ)).join('');
+    // 카츠 / 나머지 분리 (전체 filtered 기준 인덱스 유지)
+    const katsu = [], other = [];
+    filtered.forEach((item, i) => {
+      if (normalize(item.text).includes('까스') || normalize(item.text).includes('카츠')) {
+        katsu.push({ item, i });
+      } else {
+        other.push({ item, i });
+      }
+    });
+
+    // 검색 중이거나 한 쪽이 비어있으면 단일 컬럼
+    if (q || katsu.length === 0 || other.length === 0) {
+      el.innerHTML = filtered.map((item, i) => renderQueueItem(item, i, q, rawQ)).join('');
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="queue-columns">
+        <div>
+          <div class="queue-col-title">🍱 까스</div>
+          <div class="queue-col">${katsu.map(({ item, i }) => renderQueueItem(item, i, q, rawQ)).join('')}</div>
+        </div>
+        <div>
+          <div class="queue-col-title">🍽 기타</div>
+          <div class="queue-col">${other.map(({ item, i }) => renderQueueItem(item, i, q, rawQ)).join('')}</div>
+        </div>
+      </div>`;
   }
 
   /** 전체 테이블 주문을 큐 아이템 배열로 변환 */
@@ -451,9 +535,12 @@
   /** 큐 아이템 하나의 HTML 생성 */
   function renderQueueItem(item, i, q, rawQ) {
     const isSauceAside = item.text.includes(SAUCE_ASIDE_TAG);
-    const rawText = isSauceAside ? item.text.replace(SAUCE_ASIDE_TAG, '').trimEnd() : item.text;
+    const isSpicy      = item.text.includes(SPICY_TAG);
+    const rawText = item.text
+      .replace(SAUCE_ASIDE_TAG, '').replace(SPICY_TAG, '').trimEnd();
     const displayText = q ? highlightNormalized(rawText, rawQ) : escapeHtml(rawText);
     const sauceTag = isSauceAside ? ` <span class="sauce-aside-tag">🥣 소스따로</span>` : '';
+    const spicyTag = isSpicy      ? ` <span class="spicy-tag">🌶️ 스파이시</span>`      : '';
 
     const sidesHtml = item.sides.length > 0
       ? `<div class="side-checks">${item.sides.map(s => {
@@ -465,7 +552,7 @@
     return `<div class="queue-item ${q ? 'highlight' : ''}" id="qi-${i}">
       <div class="queue-table-tag">${item.table}</div>
       <div style="flex:1;min-width:0;">
-        <div class="queue-item-text">${displayText}${sauceTag}</div>
+        <div class="queue-item-text">${displayText}${sauceTag}${spicyTag}</div>
         <div class="queue-item-time">${item.time} 주문</div>
         ${sidesHtml}
       </div>
@@ -529,13 +616,18 @@
     el.innerHTML = list.map((item) => {
       const isClassic    = item.text.includes(CLASSIC_CUTLET_KO);
       const isSauceAside = item.text.includes(SAUCE_ASIDE_TAG);
+      const isClamSoup   = item.text.includes(CLAM_SOUP_KO);
+      const isSpicy      = item.text.includes(SPICY_TAG);
       const sauceBtn = isClassic
         ? `<button class="sauce-toggle-btn ${isSauceAside ? 'active' : ''}" onclick="toggleSauceAside('${item.id || item.time}')">🥣 소스따로</button>`
+        : '';
+      const spicyBtn = isClamSoup
+        ? `<button class="spicy-toggle-btn ${isSpicy ? 'active' : ''}" onclick="toggleSpicy('${item.id || item.time}')">🌶️ 스파이시</button>`
         : '';
       return `<div class="order-item">
         <div class="order-item-time">${item.time}</div>
         <div class="order-item-text">${escapeHtml(item.text)}</div>
-        ${sauceBtn}
+        ${sauceBtn}${spicyBtn}
         <button class="order-item-del" onclick="deleteOrder('${item.id || item.time}')">✕</button>
       </div>`;
     }).join('');
@@ -550,7 +642,7 @@
     if (!orders[currentTable]) orders[currentTable] = [];
     const now = new Date();
     const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-    const id = now.getTime().toString(); // 고유 ID (timestamp)
+    const id = now.getTime().toString(36) + Math.random().toString(36).slice(2, 6); // 충돌 방지
     orders[currentTable].push({ text, time, id });
     input.value = '';
     input.style.height = 'auto';
@@ -627,6 +719,7 @@
     const searchEl = document.getElementById('queueSearch');
     if (searchEl) searchEl.value = '';
     save();
+    refreshAll();                        // 테이블 뱃지 즉시 초기화
     if (currentTable) renderOrders();
   }
 
@@ -649,6 +742,18 @@
       item.text = item.text.replace(' ' + SAUCE_ASIDE_TAG, '').trimEnd();
     } else {
       item.text = item.text + ' ' + SAUCE_ASIDE_TAG;
+    }
+    save();
+    renderOrders();
+  }
+
+  function toggleSpicy(itemId) {
+    const item = findItemById(currentTable, itemId);
+    if (!item) return;
+    if (item.text.includes(SPICY_TAG)) {
+      item.text = item.text.replace(' ' + SPICY_TAG, '').trimEnd();
+    } else {
+      item.text = item.text + ' ' + SPICY_TAG;
     }
     save();
     renderOrders();
@@ -682,6 +787,59 @@
   function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; }
 
   // onclick에서 접근 가능하도록 전역 등록
+  // ===== 비밀번호 =====
+  const PIN_CORRECT = '0';
+  const SESSION_KEY = 'rj_auth';
+  let pinValue = '';
+
+  function pinUpdateDots() {
+    const dots = document.getElementById('pinDots');
+    // 입력 길이에 맞게 dot 생성 (최소 1개)
+    const len = Math.max(pinValue.length, 1);
+    dots.innerHTML = Array.from({ length: len }, (_, i) =>
+      `<div class="pin-dot ${i < pinValue.length ? 'filled' : ''}"></div>`
+    ).join('');
+  }
+
+  function pinInput(digit) {
+    if (pinValue.length >= 8) return;
+    pinValue += digit;
+    document.getElementById('pinError').textContent = '';
+    pinUpdateDots();
+  }
+
+  function pinDelete() {
+    pinValue = pinValue.slice(0, -1);
+    document.getElementById('pinError').textContent = '';
+    pinUpdateDots();
+  }
+
+  function pinConfirm() {
+    if (pinValue === PIN_CORRECT) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('pinOverlay').classList.add('hidden');
+    } else {
+      const errEl = document.getElementById('pinError');
+      errEl.textContent = '비밀번호가 틀렸어요';
+      pinValue = '';
+      pinUpdateDots();
+      // 흔들기 애니메이션
+      const dots = document.getElementById('pinDots');
+      dots.style.animation = 'none';
+      dots.offsetHeight; // reflow
+      dots.style.animation = 'shake 0.35s ease';
+    }
+  }
+
+  // 이미 인증된 세션이면 바로 통과
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('pinOverlay').classList.add('hidden');
+  }
+
+  window.pinInput   = pinInput;
+  window.pinDelete  = pinDelete;
+  window.pinConfirm = pinConfirm;
+
   window.openTable = openTable;
   window.closeModal = closeModal;
   window.handleOverlayClick = handleOverlayClick;
@@ -691,6 +849,7 @@
   window.serveItem = serveItem;
   window.toggleSide = toggleSide;
   window.toggleSauceAside = toggleSauceAside;
+  window.toggleSpicy      = toggleSpicy;
   window.clearServedAll = clearServedAll;
   window.renderQueue = renderQueue;
   window.handleKey = handleKey;
