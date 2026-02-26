@@ -141,7 +141,13 @@
     80%      { transform: translateX(6px); }
   }
 
-  /* 소스 따로 토글 */
+  /* 수량 컨트롤 (주문 항목 내) */
+  .qty-ctrl { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .qty-ctrl-btn { background: var(--card); border: 1.5px solid var(--border); color: var(--text); width: 26px; height: 26px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; -webkit-tap-highlight-color: transparent; line-height: 1; }
+  .qty-ctrl-btn:active { transform: scale(0.88); background: var(--border); }
+  .qty-ctrl-num { font-size: 15px; font-weight: 900; color: var(--accent); min-width: 20px; text-align: center; }
+
+  /* 소스 따로 / 스파이시 토글 */
   .sauce-toggle-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; font-family: inherit; padding: 3px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
   .sauce-toggle-btn.active { background: rgba(255,107,53,0.15); border-color: var(--accent); color: var(--accent); }
   .sauce-toggle-btn:active { transform: scale(0.95); }
@@ -294,9 +300,9 @@
 
   // ===== 메뉴 데이터 =====
   const MENU = [
-    { ko: '서울 경양식 돈까스', en: 'Seoul Classic Pork Cutlet', price: '$18.99', sides: [],
+    { ko: '서울 경양식 돈까스', en: 'Seoul Classic Pork Cutlet', price: '$18.99', sides: ['🍴 포크나이프'],
       keywords: ['서울','경양식','돈까스','돈카츠','클래식','classic','seoul','pork','cutlet','까스','카츠','katsu','donkatsu'] },
-    { ko: '킹타이거 프라운 까스', en: 'King Tiger Prawn Katsu', price: '$43', sides: ['🍚 밥'],
+    { ko: '킹타이거 프라운 까스', en: 'King Tiger Prawn Katsu', price: '$43', sides: ['🍚 밥', '🍴 포크나이프'],
       keywords: ['킹타이거','킹','프라운','새우','까스','카츠','katsu','king','tiger','prawn','shrimp'] },
     { ko: '등심 까스', en: 'Pork Loin Katsu', price: '$24', sides: ['🍚 밥'],
       keywords: ['등심','로인','loin','까스','카츠','katsu','pork'] },
@@ -304,7 +310,7 @@
       keywords: ['안심','텐더로인','텐더','tenderloin','tender','까스','카츠','katsu','pork'] },
     { ko: '규 까스', en: 'Gyukatsu (Beef Cutlet)', price: '$38', sides: ['🍚 밥','🔥 그릴'],
       keywords: ['규','규카츠','규까스','소고기','beef','gyukatsu','gyu','까스','카츠','katsu','cutlet'] },
-    { ko: '문어 까스', en: 'Octopus Katsu', price: '$39', sides: ['🍚 밥'],
+    { ko: '문어 까스', en: 'Octopus Katsu', price: '$39', sides: ['🍚 밥', '🍴 포크나이프'],
       keywords: ['문어','옥토퍼스','octopus','까스','카츠','katsu'] },
     { ko: '치즈 까스', en: 'Cheese Katsu', price: '$26', sides: ['🍚 밥'],
       keywords: ['치즈','cheese','까스','카츠','katsu'] },
@@ -326,7 +332,7 @@
       keywords: ['조개','조개탕','clam','클램','soup','spicy'] },
     { ko: '닭강정', en: 'Korean Sweet & Spicy Chicken Bites', price: '$14', sides: [],
       keywords: ['닭강정','강정','닭','chicken','sweet','spicy','bites'] },
-    { ko: '베이컨 김치 새우 양배추 전', en: 'Bacon, Kimchi, Shrimp & Cabbage Jeon', price: '$18', sides: [],
+    { ko: '베이컨 김치 새우 양배추 전', en: 'Bacon, Kimchi, Shrimp & Cabbage Jeon', price: '$18', sides: ['🍴 포크나이프'],
       keywords: ['베이컨','김치','새우','양배추','전','jeon','bacon','kimchi','shrimp','cabbage','pancake'] },
     { ko: '콜라', en: 'Coke', price: '$2', sides: [],
       keywords: ['콜라','coke','cola'] },
@@ -340,8 +346,14 @@
       keywords: ['소주','참이슬','진로','새로','soju','chamisul','jinro','saero'] },
     { ko: '한국 맥주', en: 'Korean Beer (CASS, TERRA)', price: '$10', sides: [],
       keywords: ['한국맥주','맥주','카스','테라','cass','terra','beer','korean'] },
-    { ko: '로컬 맥주', en: 'Local Beer (IPA, Blonde, Churro, Hazy)', price: '$8', sides: [],
-      keywords: ['로컬','로컬맥주','ipa','블론드','blonde','churro','처로','hazy','헤이지','local','beer','craft'] },
+    { ko: 'IPA 맥주', en: 'Local IPA Beer', price: '$8', sides: [],
+      keywords: ['ipa','아이피에이','local','beer','craft','로컬','맥주'] },
+    { ko: '블론드 맥주', en: 'Local Blonde Beer', price: '$8', sides: [],
+      keywords: ['블론드','블론','blonde','local','beer','craft','로컬','맥주'] },
+    { ko: '처로 맥주', en: 'Local Churro Beer', price: '$8', sides: [],
+      keywords: ['처로','추로','츄로','churro','local','beer','craft','로컬','맥주'] },
+    { ko: '헤이지 맥주', en: 'Local Hazy Beer', price: '$8', sides: [],
+      keywords: ['헤이지','헤이즈','하지','hazy','local','beer','craft','로컬','맥주'] },
     { ko: '막걸리', en: 'Makgeolli (Korean Rice Wine)', price: '$11', sides: [],
       keywords: ['막걸리','makgeolli','ricewine','탁주'] },
     { ko: '생맥주', en: 'Draft Beer (Lagunitas, Modelo)', price: '$8', sides: [],
@@ -355,8 +367,20 @@
   const CLAM_SOUP_KO      = '조개탕';
   const SERVE_ANIM_MS     = 320; // 서빙 슬라이드 애니메이션 시간
 
+  // 메뉴판 KATSU 섹션 기준 화이트리스트 (이 메뉴들만 카츠 컬럼에 표시)
+  const KATSU_MENU_KO = new Set([
+    '서울 경양식 돈까스', '킹타이거 프라운 까스', '등심 까스',
+    '안심 까스', '규 까스', '문어 까스', '치즈 까스',
+    '숯불갈비 스테이크', 'KFC 치킨',
+  ]);
+
   // ===== 유틸 =====
   function normalize(str) { return str.toLowerCase().replace(/\s/g,''); }
+
+  /** 메뉴판 KATSU 섹션 메뉴인지 확인 */
+  function isKatsuItem(text) {
+    return MENU.some(m => KATSU_MENU_KO.has(m.ko) && normalize(text).includes(normalize(m.ko)));
+  }
 
   /** 테이블의 주문 배열에서 itemId로 항목 반환 */
   function findItemById(table, itemId) {
@@ -396,6 +420,45 @@
 
   function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  const ALL_TAGS = [SAUCE_ASIDE_TAG, SPICY_TAG];
+
+  /** 텍스트에서 태그와 수량을 분리해서 반환
+   *  → { base, qty, tags, displayText }
+   *  base: 메뉴명+가격만 (태그/수량 없음)
+   *  qty: 수량 (없으면 1)
+   *  tags: 붙어있던 태그 배열 (순서 유지)
+   *  displayText: base (UI 표시용, escapeHtml 미적용)
+   */
+  function parseItemText(text) {
+    let t = text;
+    const tags = ALL_TAGS.filter(tag => t.includes(tag));
+    tags.forEach(tag => { t = t.replace(' ' + tag, ''); });
+    t = t.trimEnd();
+    const qtyMatch = t.match(/ x(\d+)$/);
+    const qty  = qtyMatch ? parseInt(qtyMatch[1]) : 1;
+    const base = t.replace(/ x\d+$/, '');
+    return { base, qty, tags, displayText: base };
+  }
+
+  /** 태그만 제거한 텍스트 반환 — 수량(x숫자)은 유지 (큐 표시용) */
+  function stripTags(text) {
+    const { base, qty } = parseItemText(text);
+    return qty > 1 ? `${base} x${qty}` : base;
+  }
+
+  /** 태그 ON/OFF 토글 (소스따로·스파이시 공통) */
+  function toggleTag(itemId, tag) {
+    const item = findItemById(currentTable, itemId);
+    if (!item) return;
+    const { base, qty, tags } = parseItemText(item.text);
+    const has = tags.includes(tag);
+    const newTags = has ? tags.filter(t => t !== tag) : [...tags, tag];
+    const withQty = qty > 1 ? `${base} x${qty}` : base;
+    item.text = newTags.length ? `${withQty} ${newTags.join(' ')}` : withQty;
+    save();
+    renderOrders();
   }
 
   // Firebase 실시간 동기화
@@ -475,14 +538,10 @@
     if (allItems.length === 0) { el.innerHTML = '<div class="queue-empty">🎉 모든 메뉴가 나갔어요!</div>'; return; }
     if (filtered.length === 0) { el.innerHTML = '<div class="queue-empty">검색 결과가 없어요</div>'; return; }
 
-    // 카츠 / 나머지 분리 (전체 filtered 기준 인덱스 유지)
     const katsu = [], other = [];
     filtered.forEach((item, i) => {
-      if (normalize(item.text).includes('까스') || normalize(item.text).includes('카츠')) {
-        katsu.push({ item, i });
-      } else {
-        other.push({ item, i });
-      }
+      if (isKatsuItem(item.text)) katsu.push({ item, i });
+      else other.push({ item, i });
     });
 
     // 검색 중이거나 한 쪽이 비어있으면 단일 컬럼
@@ -536,8 +595,7 @@
   function renderQueueItem(item, i, q, rawQ) {
     const isSauceAside = item.text.includes(SAUCE_ASIDE_TAG);
     const isSpicy      = item.text.includes(SPICY_TAG);
-    const rawText = item.text
-      .replace(SAUCE_ASIDE_TAG, '').replace(SPICY_TAG, '').trimEnd();
+    const rawText      = stripTags(item.text);
     const displayText = q ? highlightNormalized(rawText, rawQ) : escapeHtml(rawText);
     const sauceTag = isSauceAside ? ` <span class="sauce-aside-tag">🥣 소스따로</span>` : '';
     const spicyTag = isSpicy      ? ` <span class="spicy-tag">🌶️ 스파이시</span>`      : '';
@@ -614,21 +672,30 @@
     document.getElementById('modalSubtitle').textContent = list.length > 0 ? `${list.length}개 주문 중` : '주문 없음';
     if (list.length === 0) { el.innerHTML = `<div class="empty-state"><span class="icon">📝</span>아직 주문이 없어요</div>`; return; }
     el.innerHTML = list.map((item) => {
+      const itemId       = item.id || item.time;
       const isClassic    = item.text.includes(CLASSIC_CUTLET_KO);
-      const isSauceAside = item.text.includes(SAUCE_ASIDE_TAG);
       const isClamSoup   = item.text.includes(CLAM_SOUP_KO);
-      const isSpicy      = item.text.includes(SPICY_TAG);
+      const { displayText: baseText, qty, tags } = parseItemText(item.text);
+      const isSauceAside = tags.includes(SAUCE_ASIDE_TAG);
+      const isSpicy      = tags.includes(SPICY_TAG);
+
       const sauceBtn = isClassic
-        ? `<button class="sauce-toggle-btn ${isSauceAside ? 'active' : ''}" onclick="toggleSauceAside('${item.id || item.time}')">🥣 소스따로</button>`
+        ? `<button class="sauce-toggle-btn ${isSauceAside ? 'active' : ''}" onclick="toggleSauceAside('${itemId}')">🥣 소스따로</button>`
         : '';
       const spicyBtn = isClamSoup
-        ? `<button class="spicy-toggle-btn ${isSpicy ? 'active' : ''}" onclick="toggleSpicy('${item.id || item.time}')">🌶️ 스파이시</button>`
+        ? `<button class="spicy-toggle-btn ${isSpicy ? 'active' : ''}" onclick="toggleSpicy('${itemId}')">🌶️ 스파이시</button>`
         : '';
+
       return `<div class="order-item">
         <div class="order-item-time">${item.time}</div>
-        <div class="order-item-text">${escapeHtml(item.text)}</div>
+        <div class="order-item-text">${escapeHtml(baseText)}</div>
         ${sauceBtn}${spicyBtn}
-        <button class="order-item-del" onclick="deleteOrder('${item.id || item.time}')">✕</button>
+        <div class="qty-ctrl">
+          <button class="qty-ctrl-btn" onclick="changeQty('${itemId}',-1)">−</button>
+          <span class="qty-ctrl-num">${qty}</span>
+          <button class="qty-ctrl-btn" onclick="changeQty('${itemId}',1)">+</button>
+        </div>
+        <button class="order-item-del" onclick="deleteOrder('${itemId}')">✕</button>
       </div>`;
     }).join('');
 
@@ -638,7 +705,7 @@
   function addOrder() {
     const input = document.getElementById('orderInput');
     const text = input.value.trim();
-    if (!text || !currentTable) return;
+    if (!text || !currentTable) return null;
     if (!orders[currentTable]) orders[currentTable] = [];
     const now = new Date();
     const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
@@ -649,6 +716,7 @@
     save();
     renderOrders();
     setTimeout(() => { const b = document.querySelector('.modal-body'); if(b) b.scrollTop = b.scrollHeight; }, 50);
+    return id;
   }
 
   function deleteOrder(itemId) {
@@ -735,29 +803,19 @@
     addOrder();
   }
 
-  function toggleSauceAside(itemId) {
+  function changeQty(itemId, delta) {
     const item = findItemById(currentTable, itemId);
     if (!item) return;
-    if (item.text.includes(SAUCE_ASIDE_TAG)) {
-      item.text = item.text.replace(' ' + SAUCE_ASIDE_TAG, '').trimEnd();
-    } else {
-      item.text = item.text + ' ' + SAUCE_ASIDE_TAG;
-    }
+    const { base, qty, tags } = parseItemText(item.text);
+    const next = Math.max(1, qty + delta);
+    const withQty = next > 1 ? `${base} x${next}` : base;
+    item.text = tags.length ? `${withQty} ${tags.join(' ')}` : withQty;
     save();
     renderOrders();
   }
 
-  function toggleSpicy(itemId) {
-    const item = findItemById(currentTable, itemId);
-    if (!item) return;
-    if (item.text.includes(SPICY_TAG)) {
-      item.text = item.text.replace(' ' + SPICY_TAG, '').trimEnd();
-    } else {
-      item.text = item.text + ' ' + SPICY_TAG;
-    }
-    save();
-    renderOrders();
-  }
+  function toggleSauceAside(itemId) { toggleTag(itemId, SAUCE_ASIDE_TAG); }
+  function toggleSpicy(itemId)      { toggleTag(itemId, SPICY_TAG); }
 
   function showAC(val) {
     const box = document.getElementById('acBox');
@@ -856,7 +914,8 @@
   window.autoResize = autoResize;
   window.showAC = showAC;
   window.hideAC = hideAC;
-  window.selectMenu = selectMenu;
+  window.selectMenu  = selectMenu;
+  window.changeQty   = changeQty;
 
   load();
 </script>
