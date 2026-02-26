@@ -156,6 +156,12 @@
   .spicy-toggle-btn:active { transform: scale(0.95); }
   .spicy-tag { display: inline-block; background: rgba(239,71,111,0.15); border: 1px solid var(--red); color: var(--red); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
   .sauce-aside-tag { display: inline-block; background: rgba(255,107,53,0.15); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
+
+  /* 버전 푸터 */
+  .app-footer { text-align: center; padding: 16px 20px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .app-version { font-size: 11px; font-weight: 700; color: var(--accent); }
+  .app-divider { font-size: 11px; color: var(--border); }
+  .app-credit  { font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -243,6 +249,11 @@
   </div>
   <div id="queueList" class="queue-list"><div class="queue-empty">아직 주문이 없어요</div></div>
 </div>
+<footer class="app-footer">
+  <span class="app-version">v1.4.0 &nbsp;·&nbsp; 2026.02.26</span>
+  <span class="app-divider">|</span>
+  <span class="app-credit">made by C.R.</span>
+</footer>
 
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal" id="modal">
@@ -404,7 +415,7 @@
     for (const m of MENU) {
       if (m.keywords && m.keywords.some(k => {
         const nk = normalize(k);
-        if (nk.length <= 2) return t === nk || t.startsWith(nk);
+        if (nk.length <= 2) return t === nk; // startsWith 제거: '새우' 검색이 다른 메뉴 매칭하는 오류 방지
         return t.includes(nk);
       })) return m.sides;
     }
@@ -650,7 +661,7 @@
     document.getElementById('modalTitle').textContent = `테이블 ${t}`;
     renderOrders();
     document.getElementById('modalOverlay').classList.add('open');
-    setTimeout(() => document.getElementById('orderInput').focus(), 400);
+    // 자동 focus 제거 — 모달 오픈 시 키보드 자동 팝업 방지
   }
 
   function closeModal() {
@@ -736,6 +747,7 @@
     if (!confirm(`테이블 ${currentTable}의 모든 주문을 삭제할까요?`)) return;
     delete orders[currentTable];
     save();
+    refreshAll(); // 테이블 뱃지 즉시 갱신
     renderOrders();
   }
 
@@ -752,6 +764,7 @@
     orders[table].splice(idx, 1);
     cleanTableOrders(table);
     save();
+    refreshAll(); // 테이블 뱃지 즉시 갱신
 
     // 애니메이션은 시각 효과만 (데이터는 이미 삭제됨)
     const el = document.getElementById('qi-' + queueIdx);
@@ -793,7 +806,9 @@
 
   function selectMenu(i, e) {
     e.preventDefault();
+    if (e.type === 'click' && e.sourceCapabilities === null) return; // iOS synthetic click 차단
     const box = document.getElementById('acBox');
+    if (!box._results || !box._results[i]) return; // null 방어
     const m = box._results[i];
     box.classList.remove('show');
     box.innerHTML = '';
