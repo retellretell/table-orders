@@ -33,7 +33,7 @@
   .table-btn.has-order .order-badge { display: block; }
 
   /* Modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; backdrop-filter: blur(4px); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; backdrop-filter: blur(4px); padding-bottom: var(--kb-height, 0px); transition: padding-bottom 0.25s ease; }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-height: 85vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease; border-top: 1px solid var(--border); }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -162,6 +162,39 @@
   .app-version { font-size: 11px; font-weight: 700; color: var(--accent); }
   .app-divider { font-size: 11px; color: var(--border); }
   .app-credit  { font-size: 11px; color: var(--muted); }
+
+  /* ===== 메뉴 비활성화 관리 ===== */
+  .mgmt-btn { background: var(--card); border: 1.5px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; font-family: inherit; padding: 5px 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; -webkit-tap-highlight-color: transparent; transition: all 0.15s; }
+  .mgmt-btn:active { background: var(--border); }
+  .mgmt-btn.has-disabled { border-color: var(--red); color: var(--red); background: rgba(239,71,111,0.08); }
+
+  .mgmt-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; display: none; align-items: flex-end; backdrop-filter: blur(4px); }
+  .mgmt-overlay.open { display: flex; }
+  .mgmt-panel { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-height: 88vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease; border-top: 1px solid var(--border); }
+  .mgmt-header { padding: 16px 20px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .mgmt-title { font-size: 17px; font-weight: 900; color: var(--text); }
+  .mgmt-close { background: var(--card); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .mgmt-body { flex: 1; overflow-y: auto; padding: 14px 16px 20px; }
+
+  .mgmt-section-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 14px; }
+  .mgmt-section-title:first-child { margin-top: 0; }
+
+  .mgmt-menu-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--card); border-radius: 10px; margin-bottom: 6px; border: 1.5px solid var(--border); gap: 10px; transition: border-color 0.15s; }
+  .mgmt-menu-row.disabled-row { border-color: rgba(239,71,111,0.4); background: rgba(239,71,111,0.05); }
+  .mgmt-menu-name { font-size: 13px; font-weight: 600; flex: 1; }
+  .mgmt-menu-timer { font-size: 10px; color: var(--red); font-weight: 700; white-space: nowrap; }
+  .mgmt-menu-row.disabled-row .mgmt-menu-name { color: var(--muted); text-decoration: line-through; }
+
+  .dur-btns { display: flex; gap: 5px; flex-shrink: 0; }
+  .dur-btn { background: var(--surface); border: 1.5px solid var(--border); color: var(--muted); font-size: 10px; font-weight: 700; font-family: inherit; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.12s; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+  .dur-btn:active { transform: scale(0.92); }
+  .dur-btn.active { background: rgba(239,71,111,0.15); border-color: var(--red); color: var(--red); }
+  .dur-btn.restore-btn { background: rgba(6,214,160,0.1); border-color: var(--green); color: var(--green); }
+
+  /* 자동완성 비활성 메뉴 스타일 */
+  .ac-item.ac-disabled { opacity: 0.38; pointer-events: none; }
+  .ac-item.ac-disabled .ac-name::after { content: ' 🚫'; }
+  .ac-disabled-timer { font-size: 10px; color: var(--red); font-weight: 700; margin-top: 1px; }
 </style>
 </head>
 <body>
@@ -242,13 +275,30 @@
 <div class="queue-section">
   <div class="queue-header">
     <div class="queue-title">🧾 나가야 할 메뉴 <span class="queue-count-badge" id="queueCountBadge">0</span></div>
-    <button class="queue-clear-btn" onclick="clearServedAll()">전체 완료</button>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="mgmt-btn" id="mgmtBtn" onclick="openMgmt()">🚫 품절</button>
+      <button class="queue-clear-btn" onclick="clearServedAll()">전체 완료</button>
+    </div>
   </div>
   <div class="queue-search-wrap">
     <input type="text" id="queueSearch" class="queue-search-input" placeholder="🔍 메뉴 검색... (예: 규카츠, 안심)" oninput="renderQueue()">
   </div>
   <div id="queueList" class="queue-list"><div class="queue-empty">아직 주문이 없어요</div></div>
 </div>
+<div class="mgmt-overlay" id="mgmtOverlay" onclick="handleMgmtOverlayClick(event)">
+  <div class="mgmt-panel">
+    <div class="mgmt-header">
+      <div>
+        <div class="mgmt-title">🚫 품절 메뉴 관리</div>
+      </div>
+      <button class="mgmt-close" onclick="closeMgmt()">×</button>
+    </div>
+    <div class="mgmt-body" id="mgmtBody">
+      <!-- JS로 렌더 -->
+    </div>
+  </div>
+</div>
+
 <footer class="app-footer">
   <span class="app-version">v1.4.0 &nbsp;·&nbsp; 2026.02.26</span>
   <span class="app-divider">|</span>
@@ -369,6 +419,12 @@
       keywords: ['막걸리','makgeolli','ricewine','탁주'] },
     { ko: '생맥주', en: 'Draft Beer (Lagunitas, Modelo)', price: '$8', sides: [],
       keywords: ['생맥주','생','draft','라구니타스','모델로','lagunitas','modelo'] },
+    { ko: '모히또 칵테일', en: 'Mojito Cocktail', price: '$14', sides: [],
+      keywords: ['모히또','모히토','mojito','칵테일','cocktail','럼','rum','민트','mint'] },
+    { ko: '서울 플로트 칵테일', en: 'Seoul Float Cocktail', price: '$14', sides: [],
+      keywords: ['서울','플로트','float','서울플로트','칵테일','cocktail'] },
+    { ko: '라떼 칵테일', en: 'Latte Cocktail', price: '$14', sides: [],
+      keywords: ['라떼','latte','칵테일','cocktail','커피','coffee'] },
   ];
 
   // ===== 상수 =====
@@ -409,15 +465,11 @@
   }
 
   function getSidesForText(text) {
+    // 저장된 텍스트("메뉴명 $가격 x수량 태그") 안에 메뉴 ko명이 포함되는지로 매칭
+    // 키워드 방식보다 정확하고 오매칭 없음
     const t = normalize(text);
-    // 짧은 키워드(2자 이하)는 완전일치 또는 앞에서 시작할 때만 매칭
-    // endsWith 제거: '규카츠'.endsWith('카츠')=true 같은 오매칭 방지
     for (const m of MENU) {
-      if (m.keywords && m.keywords.some(k => {
-        const nk = normalize(k);
-        if (nk.length <= 2) return t === nk; // startsWith 제거: '새우' 검색이 다른 메뉴 매칭하는 오류 방지
-        return t.includes(nk);
-      })) return m.sides;
+      if (t.includes(normalize(m.ko))) return m.sides;
     }
     return [];
   }
@@ -490,6 +542,7 @@
       document.getElementById('syncText').textContent = '실시간 연결';
       refreshAll();
       if (currentTable) renderOrders();
+      updateMgmtBtn();
     }, () => {
       document.getElementById('syncDot').classList.add('off');
       document.getElementById('syncText').textContent = '연결 오류';
@@ -843,14 +896,21 @@
       (m.keywords && m.keywords.some(k => normalize(k).includes(qn) || qn.includes(normalize(k))))
     ).slice(0, 8);
     if (!results.length) { box.classList.remove('show'); box.innerHTML = ''; return; }
-    box.innerHTML = results.map((m, i) => `
-      <div class="ac-item" ontouchend="selectMenu(${i},event)" onclick="selectMenu(${i},event)">
+    box.innerHTML = results.map((m, i) => {
+      const off = isMenuDisabled(m.ko);
+      const disabledTimer = off ? (() => {
+        const d = getDisabledMenus(); const exp = d[m.ko];
+        return `<div class="ac-disabled-timer">${formatRemaining(exp)}</div>`;
+      })() : '';
+      return `<div class="ac-item${off ? ' ac-disabled' : ''}" ${off ? '' : `ontouchend="selectMenu(${i},event)" onclick="selectMenu(${i},event)"`}>
         <div class="ac-left">
           <div class="ac-name">${highlight(m.ko, q)}</div>
           <div class="ac-en">${highlight(m.en, q)}</div>
+          ${disabledTimer}
         </div>
         <div class="ac-price">${m.price}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     box._results = results;
     box.classList.add('show');
   }
@@ -858,6 +918,169 @@
   function hideAC() { setTimeout(() => { document.getElementById('acBox').classList.remove('show'); }, 200); }
   function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addOrder(); } }
   function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; }
+
+
+  // ===== 품절 메뉴 관리 =====
+  // disabledMenus: { [menuKo]: expireTimestamp }  — localStorage 저장
+  const DISABLED_KEY = 'rj_disabled';
+
+  function loadDisabled() {
+    try {
+      const raw = localStorage.getItem(DISABLED_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  }
+  function saveDisabled(d) {
+    try { localStorage.setItem(DISABLED_KEY, JSON.stringify(d)); } catch {}
+  }
+  function getDisabledMenus() {
+    // 만료된 항목 자동 정리
+    const d = loadDisabled();
+    const now = Date.now();
+    let changed = false;
+    for (const ko in d) {
+      if (d[ko] !== null && d[ko] < now) { delete d[ko]; changed = true; }
+    }
+    if (changed) saveDisabled(d);
+    return d;
+  }
+  function isMenuDisabled(menuKo) {
+    const d = getDisabledMenus();
+    return menuKo in d;
+  }
+  function disableMenu(menuKo, durationMs) {
+    const d = getDisabledMenus();
+    if (durationMs === null) {
+      const midnight = new Date(); midnight.setHours(24,0,0,0);
+      d[menuKo] = midnight.getTime();
+    } else {
+      d[menuKo] = Date.now() + durationMs;
+    }
+    saveDisabled(d);
+  }
+  function enableMenu(menuKo) {
+    const d = getDisabledMenus();
+    delete d[menuKo];
+    saveDisabled(d);
+  }
+  function formatRemaining(expireTs) {
+    if (expireTs === null) {
+      const midnight = new Date(); midnight.setHours(24,0,0,0);
+      expireTs = midnight.getTime();
+    }
+    const ms = expireTs - Date.now();
+    if (ms <= 0) return '만료';
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    return h > 0 ? `${h}h ${m}m 남음` : `${m}m 남음`;
+  }
+
+  // 관리 패널 열기/닫기
+  function openMgmt() {
+    renderMgmt();
+    document.getElementById('mgmtOverlay').classList.add('open');
+  }
+  function closeMgmt() {
+    document.getElementById('mgmtOverlay').classList.remove('open');
+    if (_mgmtTimer) { clearInterval(_mgmtTimer); _mgmtTimer = null; }
+    updateMgmtBtn();
+  }
+  function handleMgmtOverlayClick(e) {
+    if (e.target === document.getElementById('mgmtOverlay')) closeMgmt();
+  }
+
+  let _mgmtTimer = null;
+
+  const MENU_SECTIONS = [
+    { label: '🍱 까스류', items: ['서울 경양식 돈까스','킹타이거 프라운 까스','등심 까스','안심 까스','규 까스','문어 까스','치즈 까스','숯불갈비 스테이크','KFC 치킨'] },
+    { label: '🍽 음식',   items: ['조랭이떡볶이','삼겹살 튀김','연어장','차돌박이 비빔파스타','꽈리고추 버섯구이','조개탕','닭강정','베이컨 김치 새우 양배추 전'] },
+    { label: '🍺 음료·주류', items: ['콜라','다이어트콜라','스프라이트','밀키스','소주','한국 맥주','IPA 맥주','블론드 맥주','처로 맥주','헤이지 맥주','막걸리','생맥주'] },
+    { label: '🍹 칵테일', items: ['모히또 칵테일','서울 플로트 칵테일','라떼 칵테일'] },
+  ];
+
+  function renderMgmt() {
+    const d = getDisabledMenus();
+    const body = document.getElementById('mgmtBody');
+
+    const rows = MENU_SECTIONS.map(sec => {
+      const itemsHtml = sec.items.map(ko => {
+        const isOff = ko in d;
+        const exp   = d[ko];
+        const rowCls = isOff ? 'mgmt-menu-row disabled-row' : 'mgmt-menu-row';
+        const timerHtml = isOff
+          ? `<span class="mgmt-menu-timer" id="timer-${CSS.escape(ko)}">${formatRemaining(exp)}</span>`
+          : '';
+
+        const durBtns = isOff
+          ? `<div class="dur-btns">
+               <button class="dur-btn restore-btn" onclick="mgmtEnable(${JSON.stringify(ko)})">✓ 복구</button>
+             </div>`
+          : `<div class="dur-btns">
+               <button class="dur-btn" onclick="mgmtDisable(${JSON.stringify(ko)},1)">1h</button>
+               <button class="dur-btn" onclick="mgmtDisable(${JSON.stringify(ko)},2)">2h</button>
+               <button class="dur-btn" onclick="mgmtDisable(${JSON.stringify(ko)},3)">3h</button>
+               <button class="dur-btn" onclick="mgmtDisable(${JSON.stringify(ko)},null)">~00:00</button>
+             </div>`;
+
+        return `<div class="${rowCls}" id="mgmt-row-${CSS.escape(ko)}">
+          <div style="flex:1;min-width:0;">
+            <div class="mgmt-menu-name">${escapeHtml(ko)}</div>
+            ${timerHtml}
+          </div>
+          ${durBtns}
+        </div>`;
+      }).join('');
+
+      return `<div class="mgmt-section-title">${sec.label}</div>${itemsHtml}`;
+    }).join('');
+
+    body.innerHTML = rows;
+
+    // 타이머 갱신 (1분마다)
+    if (_mgmtTimer) clearInterval(_mgmtTimer);
+    _mgmtTimer = setInterval(() => {
+      const dd = getDisabledMenus();
+      MENU_SECTIONS.forEach(sec => sec.items.forEach(ko => {
+        const el = document.getElementById('timer-' + CSS.escape(ko));
+        if (el) {
+          if (!(ko in dd)) {
+            // 만료됨 → 행 갱신
+            renderMgmt();
+            return;
+          }
+          el.textContent = formatRemaining(dd[ko]);
+        }
+      }));
+      updateMgmtBtn();
+    }, 60000);
+  }
+
+  function mgmtDisable(ko, hours) {
+    const ms = hours === null ? null : hours * 3600000;
+    disableMenu(ko, ms);
+    renderMgmt();
+    updateMgmtBtn();
+  }
+  function mgmtEnable(ko) {
+    enableMenu(ko);
+    renderMgmt();
+    updateMgmtBtn();
+  }
+
+  // 헤더 버튼 상태 갱신
+  function updateMgmtBtn() {
+    const d = getDisabledMenus();
+    const btn = document.getElementById('mgmtBtn');
+    if (!btn) return;
+    const count = Object.keys(d).length;
+    if (count > 0) {
+      btn.classList.add('has-disabled');
+      btn.textContent = `🚫 품절 ${count}`;
+    } else {
+      btn.classList.remove('has-disabled');
+      btn.textContent = '🚫 품절';
+    }
+  }
 
   // onclick에서 접근 가능하도록 전역 등록
   // ===== 비밀번호 =====
@@ -909,6 +1132,12 @@
     document.getElementById('pinOverlay').classList.add('hidden');
   }
 
+  window.openMgmt   = openMgmt;
+  window.closeMgmt  = closeMgmt;
+  window.handleMgmtOverlayClick = handleMgmtOverlayClick;
+  window.mgmtDisable = mgmtDisable;
+  window.mgmtEnable  = mgmtEnable;
+
   window.pinInput   = pinInput;
   window.pinDelete  = pinDelete;
   window.pinConfirm = pinConfirm;
@@ -931,6 +1160,18 @@
   window.hideAC = hideAC;
   window.selectMenu  = selectMenu;
   window.changeQty   = changeQty;
+
+
+  // ===== 키보드 높이 감지 (iOS Safari visualViewport) =====
+  function updateKeyboardHeight() {
+    const kbHeight = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
+    const h = Math.max(0, Math.round(kbHeight));
+    document.documentElement.style.setProperty('--kb-height', h + 'px');
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateKeyboardHeight);
+    window.visualViewport.addEventListener('scroll', updateKeyboardHeight);
+  }
 
   load();
 </script>
